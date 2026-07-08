@@ -1,2 +1,23 @@
 <Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/TicketHub.Core/TicketHub.Core.csproj" />
+    <Project Path="src/BuildingBlocks/TicketHub.MessageBus/TicketHub.MessageBus.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Eventos/">
+    <Project Path="src/Services/Eventos/Eventos.Api/Eventos.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Ingressos/">
+    <Project Path="src/Services/Ingressos/Ingressos.Api/Ingressos.Api.csproj" />
+    <Project Path="src/Services/Ingressos/Ingressos.Application/Ingressos.Application.csproj" />
+    <Project Path="src/Services/Ingressos/Ingressos.Domain/Ingressos.Domain.csproj" />
+    <Project Path="src/Services/Ingressos/Ingressos.Infrastructure/Ingressos.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Notificacoes/">
+    <Project Path="src/Services/Notificacoes/Notificacoes.Worker/Notificacoes.Worker.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Pagamento/">
+    <Project Path="src/Services/Pagamento/Pagamento.Api/Pagamento.Api.csproj" />
+  </Folder>
 </Solution>
