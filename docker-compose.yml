@@ -1,0 +1,107 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: tickethub-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "TicketHub#2026"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: tickethub-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: tickethub-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  eventos-api:
+    build:
+      context: .
+      dockerfile: src/Services/Eventos/Eventos.Api/Dockerfile
+    container_name: tickethub-eventos-api
+    ports:
+      - "5001:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+  ingressos-api:
+    build:
+      context: .
+      dockerfile: src/Services/Ingressos/Ingressos.Api/Dockerfile
+    container_name: tickethub-ingressos-api
+    ports:
+      - "5002:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  pagamento-api:
+    build:
+      context: .
+      dockerfile: src/Services/Pagamento/Pagamento.Api/Dockerfile
+    container_name: tickethub-pagamento-api
+    ports:
+      - "5003:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  notificacoes-worker:
+    build:
+      context: .
+      dockerfile: src/Services/Notificacoes/Notificacoes.Worker/Dockerfile
+    container_name: tickethub-notificacoes-worker
+    environment:
+      DOTNET_ENVIRONMENT: Development
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  sqlserver-data:
+  rabbitmq-data:
+  redis-data:
