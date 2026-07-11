@@ -25,4 +25,43 @@ public class IngressosController(IIngressoAppService ingressoAppService) : Contr
 
         return ingresso is null ? NotFound() : Ok(ingresso);
     }
+
+    [HttpGet]
+    public async Task<ActionResult<IReadOnlyList<IngressoResponse>>> Listar(
+        [FromQuery] Guid? eventoId,
+        CancellationToken cancellationToken)
+    {
+        var ingressos = await ingressoAppService.ListarAsync(eventoId, cancellationToken);
+
+        return Ok(ingressos);
+    }
+
+    [HttpPost("{id:guid}/reservar")]
+    public Task<ActionResult<IngressoResponse>> Reservar(Guid id, CancellationToken cancellationToken) =>
+        AplicarTransicaoAsync(id, ingressoAppService.ReservarAsync, cancellationToken);
+
+    [HttpPost("{id:guid}/confirmar-venda")]
+    public Task<ActionResult<IngressoResponse>> ConfirmarVenda(Guid id, CancellationToken cancellationToken) =>
+        AplicarTransicaoAsync(id, ingressoAppService.ConfirmarVendaAsync, cancellationToken);
+
+    [HttpPost("{id:guid}/cancelar")]
+    public Task<ActionResult<IngressoResponse>> Cancelar(Guid id, CancellationToken cancellationToken) =>
+        AplicarTransicaoAsync(id, ingressoAppService.CancelarAsync, cancellationToken);
+
+    private async Task<ActionResult<IngressoResponse>> AplicarTransicaoAsync(
+        Guid id,
+        Func<Guid, CancellationToken, Task<IngressoResponse?>> transicao,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var ingresso = await transicao(id, cancellationToken);
+
+            return ingresso is null ? NotFound() : Ok(ingresso);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { mensagem = ex.Message });
+        }
+    }
 }
