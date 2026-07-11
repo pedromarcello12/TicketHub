@@ -1,17 +1,14 @@
-using Ingressos.Api.Filtros;
-using Ingressos.Infrastructure;
 using TicketHub.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers(options => options.Filters.Add<ApiExceptionFilter>());
+builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AdicionarInfrastructureIngressos(builder.Configuration);
-builder.Services.AdicionarAutenticacaoJwt(builder.Configuration);
+builder.Services.AdicionarEmissorJwt(builder.Configuration);
 
 var app = builder.Build();
 
@@ -22,9 +19,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapControllers();
 

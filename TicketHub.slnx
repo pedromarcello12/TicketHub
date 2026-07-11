@@ -1,10 +1,14 @@
 <Solution>
   <Folder Name="/src/" />
   <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/TicketHub.Auth/TicketHub.Auth.csproj" />
     <Project Path="src/BuildingBlocks/TicketHub.Core/TicketHub.Core.csproj" />
     <Project Path="src/BuildingBlocks/TicketHub.MessageBus/TicketHub.MessageBus.csproj" />
   </Folder>
   <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Auth/">
+    <Project Path="src/Services/Auth/Auth.Api/Auth.Api.csproj" />
+  </Folder>
   <Folder Name="/src/Services/Eventos/">
     <Project Path="src/Services/Eventos/Eventos.Api/Eventos.Api.csproj" />
     <Project Path="src/Services/Eventos/Eventos.Application/Eventos.Application.csproj" />
