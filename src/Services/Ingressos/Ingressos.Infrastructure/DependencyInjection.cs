@@ -3,6 +3,7 @@ using Ingressos.Application.Ingressos.Servicos;
 using Ingressos.Infrastructure.Jobs;
 using Ingressos.Infrastructure.Persistencia;
 using Ingressos.Infrastructure.Repositorios;
+using Ingressos.Infrastructure.ServicosExternos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,16 @@ public static class DependencyInjection
     {
         services.AddDbContext<IngressosDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("IngressosDb")));
+
+        var servicosExternos = new ServicosExternosOptions();
+        configuration.GetSection(ServicosExternosOptions.SectionName).Bind(servicosExternos);
+
+        services.AddHttpClient<IEventoExternalService, HttpEventoExternalService>(client =>
+            {
+                client.BaseAddress = new Uri(servicosExternos.EventosApiBaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(5);
+            })
+            .AddStandardResilienceHandler();
 
         services.AddScoped<IIngressoRepositorio, IngressoRepositorio>();
         services.AddScoped<IIngressoAppService, IngressoAppService>();

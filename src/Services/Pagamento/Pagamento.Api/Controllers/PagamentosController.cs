@@ -37,31 +37,26 @@ public class PagamentosController(IPagamentoAppService pagamentoAppService) : Co
     }
 
     [HttpPost("{id:guid}/aprovar")]
-    public Task<ActionResult<PagamentoResponse>> Aprovar(Guid id, CancellationToken cancellationToken) =>
-        AplicarTransicaoAsync(id, pagamentoAppService.AprovarAsync, cancellationToken);
+    public async Task<ActionResult<PagamentoResponse>> Aprovar(Guid id, CancellationToken cancellationToken)
+    {
+        var pagamento = await pagamentoAppService.AprovarAsync(id, cancellationToken);
+
+        return pagamento is null ? NotFound() : Ok(pagamento);
+    }
 
     [HttpPost("{id:guid}/recusar")]
-    public Task<ActionResult<PagamentoResponse>> Recusar(Guid id, CancellationToken cancellationToken) =>
-        AplicarTransicaoAsync(id, pagamentoAppService.RecusarAsync, cancellationToken);
+    public async Task<ActionResult<PagamentoResponse>> Recusar(Guid id, CancellationToken cancellationToken)
+    {
+        var pagamento = await pagamentoAppService.RecusarAsync(id, cancellationToken);
+
+        return pagamento is null ? NotFound() : Ok(pagamento);
+    }
 
     [HttpPost("{id:guid}/estornar")]
-    public Task<ActionResult<PagamentoResponse>> Estornar(Guid id, CancellationToken cancellationToken) =>
-        AplicarTransicaoAsync(id, pagamentoAppService.EstornarAsync, cancellationToken);
-
-    private async Task<ActionResult<PagamentoResponse>> AplicarTransicaoAsync(
-        Guid id,
-        Func<Guid, CancellationToken, Task<PagamentoResponse?>> transicao,
-        CancellationToken cancellationToken)
+    public async Task<ActionResult<PagamentoResponse>> Estornar(Guid id, CancellationToken cancellationToken)
     {
-        try
-        {
-            var pagamento = await transicao(id, cancellationToken);
+        var pagamento = await pagamentoAppService.EstornarAsync(id, cancellationToken);
 
-            return pagamento is null ? NotFound() : Ok(pagamento);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new { mensagem = ex.Message });
-        }
+        return pagamento is null ? NotFound() : Ok(pagamento);
     }
 }

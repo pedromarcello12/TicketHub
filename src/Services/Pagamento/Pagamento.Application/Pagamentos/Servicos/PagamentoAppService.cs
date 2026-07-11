@@ -1,15 +1,21 @@
 using Pagamento.Application.Pagamentos.DTOs;
 using Pagamento.Application.Pagamentos.Interfaces;
+using TicketHub.Core.Excecoes;
 using EntidadePagamento = Pagamento.Domain.Entidades.Pagamento;
 
 namespace Pagamento.Application.Pagamentos.Servicos;
 
 public class PagamentoAppService(
     IPagamentoRepositorio repositorio,
-    IPagamentoEventoPublisher eventoPublisher) : IPagamentoAppService
+    IPagamentoEventoPublisher eventoPublisher,
+    IIngressoExternalService ingressoExternalService) : IPagamentoAppService
 {
     public async Task<PagamentoResponse> CriarAsync(CriarPagamentoRequest request, CancellationToken cancellationToken)
     {
+        var ingressoExiste = await ingressoExternalService.ExisteAsync(request.IngressoId, cancellationToken);
+        if (!ingressoExiste)
+            throw new RecursoRelacionadoNaoEncontradoException($"Ingresso '{request.IngressoId}' não encontrado.");
+
         var pagamento = new EntidadePagamento(request.IngressoId, request.Valor, request.Metodo);
 
         await repositorio.AdicionarAsync(pagamento, cancellationToken);
