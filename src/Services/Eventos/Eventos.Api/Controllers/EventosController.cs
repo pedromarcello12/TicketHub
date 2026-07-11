@@ -2,6 +2,7 @@ using Eventos.Application.Eventos.DTOs;
 using Eventos.Application.Eventos.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TicketHub.Auth;
 
 namespace Eventos.Api.Controllers;
 
@@ -11,6 +12,7 @@ namespace Eventos.Api.Controllers;
 public class EventosController(IEventoAppService eventoAppService) : ControllerBase
 {
     [HttpPost]
+    [Authorize(Roles = Papeis.Administrador)]
     public async Task<ActionResult<EventoResponse>> Criar(
         [FromBody] CriarEventoRequest request,
         CancellationToken cancellationToken)
@@ -37,14 +39,17 @@ public class EventosController(IEventoAppService eventoAppService) : ControllerB
     }
 
     [HttpPost("{id:guid}/publicar")]
+    [Authorize(Roles = Papeis.Administrador)]
     public Task<ActionResult<EventoResponse>> Publicar(Guid id, CancellationToken cancellationToken) =>
         AplicarTransicaoAsync(id, eventoAppService.PublicarAsync, cancellationToken);
 
     [HttpPost("{id:guid}/cancelar")]
+    [Authorize(Roles = Papeis.Administrador)]
     public Task<ActionResult<EventoResponse>> Cancelar(Guid id, CancellationToken cancellationToken) =>
         AplicarTransicaoAsync(id, eventoAppService.CancelarAsync, cancellationToken);
 
     [HttpPost("{id:guid}/encerrar")]
+    [Authorize(Roles = Papeis.Administrador)]
     public Task<ActionResult<EventoResponse>> Encerrar(Guid id, CancellationToken cancellationToken) =>
         AplicarTransicaoAsync(id, eventoAppService.EncerrarAsync, cancellationToken);
 
