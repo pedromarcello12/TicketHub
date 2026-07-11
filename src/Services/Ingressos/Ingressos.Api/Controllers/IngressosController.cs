@@ -2,6 +2,7 @@ using Ingressos.Application.Ingressos.DTOs;
 using Ingressos.Application.Ingressos.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TicketHub.Auth;
 
 namespace Ingressos.Api.Controllers;
 
@@ -11,6 +12,7 @@ namespace Ingressos.Api.Controllers;
 public class IngressosController(IIngressoAppService ingressoAppService) : ControllerBase
 {
     [HttpPost]
+    [Authorize(Roles = Papeis.Administrador)]
     public async Task<ActionResult<IngressoResponse>> Criar(
         [FromBody] CriarIngressoRequest request,
         CancellationToken cancellationToken)

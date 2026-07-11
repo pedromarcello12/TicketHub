@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pagamento.Application.Pagamentos.DTOs;
 using Pagamento.Application.Pagamentos.Interfaces;
+using TicketHub.Auth;
 
 namespace Pagamento.Api.Controllers;
 
@@ -39,6 +40,7 @@ public class PagamentosController(IPagamentoAppService pagamentoAppService) : Co
     }
 
     [HttpPost("{id:guid}/aprovar")]
+    [Authorize(Roles = Papeis.Administrador)]
     public async Task<ActionResult<PagamentoResponse>> Aprovar(Guid id, CancellationToken cancellationToken)
     {
         var pagamento = await pagamentoAppService.AprovarAsync(id, cancellationToken);
@@ -47,6 +49,7 @@ public class PagamentosController(IPagamentoAppService pagamentoAppService) : Co
     }
 
     [HttpPost("{id:guid}/recusar")]
+    [Authorize(Roles = Papeis.Administrador)]
     public async Task<ActionResult<PagamentoResponse>> Recusar(Guid id, CancellationToken cancellationToken)
     {
         var pagamento = await pagamentoAppService.RecusarAsync(id, cancellationToken);
@@ -55,6 +58,7 @@ public class PagamentosController(IPagamentoAppService pagamentoAppService) : Co
     }
 
     [HttpPost("{id:guid}/estornar")]
+    [Authorize(Roles = Papeis.Administrador)]
     public async Task<ActionResult<PagamentoResponse>> Estornar(Guid id, CancellationToken cancellationToken)
     {
         var pagamento = await pagamentoAppService.EstornarAsync(id, cancellationToken);
