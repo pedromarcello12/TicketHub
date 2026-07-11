@@ -5,10 +5,13 @@ namespace Ingressos.Domain.Entidades;
 
 public class Ingresso : EntidadeBase
 {
+    public static readonly TimeSpan DuracaoReserva = TimeSpan.FromMinutes(10);
+
     public Guid EventoId { get; private set; }
     public string TipoIngresso { get; private set; } = string.Empty;
     public decimal Preco { get; private set; }
     public StatusIngresso Status { get; private set; }
+    public DateTime? ReservadoAte { get; private set; }
 
     private Ingresso() { }
 
@@ -35,6 +38,7 @@ public class Ingresso : EntidadeBase
             throw new InvalidOperationException("Somente ingressos disponíveis podem ser reservados.");
 
         Status = StatusIngresso.Reservado;
+        ReservadoAte = DateTime.UtcNow.Add(DuracaoReserva);
     }
 
     public void ConfirmarVenda()
@@ -43,6 +47,7 @@ public class Ingresso : EntidadeBase
             throw new InvalidOperationException("Somente ingressos reservados podem ter a venda confirmada.");
 
         Status = StatusIngresso.Vendido;
+        ReservadoAte = null;
     }
 
     public void Cancelar()
@@ -51,5 +56,15 @@ public class Ingresso : EntidadeBase
             throw new InvalidOperationException("Ingressos já vendidos não podem ser cancelados.");
 
         Status = StatusIngresso.Cancelado;
+        ReservadoAte = null;
+    }
+
+    public void LiberarReservaExpirada(DateTime agora)
+    {
+        if (Status != StatusIngresso.Reservado || ReservadoAte is null || ReservadoAte > agora)
+            return;
+
+        Status = StatusIngresso.Disponivel;
+        ReservadoAte = null;
     }
 }

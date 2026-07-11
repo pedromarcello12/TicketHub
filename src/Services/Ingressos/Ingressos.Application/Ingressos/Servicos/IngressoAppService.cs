@@ -65,4 +65,20 @@ public class IngressoAppService(IIngressoRepositorio repositorio) : IIngressoApp
 
         return IngressoResponse.DeEntidade(ingresso);
     }
+
+    public async Task<int> LiberarReservasExpiradasAsync(CancellationToken cancellationToken)
+    {
+        var agora = DateTime.UtcNow;
+        var expirados = await repositorio.ListarReservasExpiradasAsync(agora, cancellationToken);
+
+        if (expirados.Count == 0)
+            return 0;
+
+        foreach (var ingresso in expirados)
+            ingresso.LiberarReservaExpirada(agora);
+
+        await repositorio.SalvarAlteracoesAsync(cancellationToken);
+
+        return expirados.Count;
+    }
 }

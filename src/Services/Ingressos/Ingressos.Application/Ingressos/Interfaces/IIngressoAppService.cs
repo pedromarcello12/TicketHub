@@ -10,4 +10,5 @@ public interface IIngressoAppService
     Task<IngressoResponse?> ReservarAsync(Guid id, CancellationToken cancellationToken);
     Task<IngressoResponse?> ConfirmarVendaAsync(Guid id, CancellationToken cancellationToken);
     Task<IngressoResponse?> CancelarAsync(Guid id, CancellationToken cancellationToken);
+    Task<int> LiberarReservasExpiradasAsync(CancellationToken cancellationToken);
 }
