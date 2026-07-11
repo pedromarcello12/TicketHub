@@ -7,6 +7,9 @@
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Eventos/">
     <Project Path="src/Services/Eventos/Eventos.Api/Eventos.Api.csproj" />
+    <Project Path="src/Services/Eventos/Eventos.Application/Eventos.Application.csproj" />
+    <Project Path="src/Services/Eventos/Eventos.Domain/Eventos.Domain.csproj" />
+    <Project Path="src/Services/Eventos/Eventos.Infrastructure/Eventos.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Services/Ingressos/">
     <Project Path="src/Services/Ingressos/Ingressos.Api/Ingressos.Api.csproj" />
@@ -19,5 +22,8 @@
   </Folder>
   <Folder Name="/src/Services/Pagamento/">
     <Project Path="src/Services/Pagamento/Pagamento.Api/Pagamento.Api.csproj" />
+    <Project Path="src/Services/Pagamento/Pagamento.Application/Pagamento.Application.csproj" />
+    <Project Path="src/Services/Pagamento/Pagamento.Domain/Pagamento.Domain.csproj" />
+    <Project Path="src/Services/Pagamento/Pagamento.Infrastructure/Pagamento.Infrastructure.csproj" />
   </Folder>
 </Solution>
