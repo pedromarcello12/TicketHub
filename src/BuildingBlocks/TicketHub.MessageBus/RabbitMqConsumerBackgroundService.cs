@@ -41,7 +41,9 @@ public abstract class RabbitMqConsumerBackgroundService<TEvento> : BackgroundSer
             Password = _opcoes.Password
         };
 
-        _conexao = factory.CreateConnection();
+        var politicaConexao = RabbitMqRetryPolicies.CriarPoliticaConexao(_logger);
+
+        _conexao = politicaConexao.Execute(() => factory.CreateConnection());
         _canal = _conexao.CreateModel();
 
         _canal.ExchangeDeclare(RabbitMqConstantes.ExchangeEventos, ExchangeType.Topic, durable: true);
