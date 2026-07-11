@@ -1,5 +1,6 @@
 using Ingressos.Application.Ingressos.Interfaces;
 using Ingressos.Application.Ingressos.Servicos;
+using Ingressos.Infrastructure.Jobs;
 using Ingressos.Infrastructure.Persistencia;
 using Ingressos.Infrastructure.Repositorios;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ public static class DependencyInjection
 
         services.AddScoped<IIngressoRepositorio, IngressoRepositorio>();
         services.AddScoped<IIngressoAppService, IngressoAppService>();
+        services.AddHostedService<LiberacaoReservaExpiradaWorker>();
 
         return services;
     }

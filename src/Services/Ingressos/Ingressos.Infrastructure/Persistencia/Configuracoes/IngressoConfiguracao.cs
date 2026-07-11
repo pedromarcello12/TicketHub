@@ -28,6 +28,8 @@ public class IngressoConfiguracao : IEntityTypeConfiguration<Ingresso>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(i => i.ReservadoAte);
+
         builder.Property(i => i.CriadoEm)
             .IsRequired();
     }
