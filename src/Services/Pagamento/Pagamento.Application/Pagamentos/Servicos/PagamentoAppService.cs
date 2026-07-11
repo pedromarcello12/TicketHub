@@ -4,7 +4,9 @@ using EntidadePagamento = Pagamento.Domain.Entidades.Pagamento;
 
 namespace Pagamento.Application.Pagamentos.Servicos;
 
-public class PagamentoAppService(IPagamentoRepositorio repositorio) : IPagamentoAppService
+public class PagamentoAppService(
+    IPagamentoRepositorio repositorio,
+    IPagamentoEventoPublisher eventoPublisher) : IPagamentoAppService
 {
     public async Task<PagamentoResponse> CriarAsync(CriarPagamentoRequest request, CancellationToken cancellationToken)
     {
@@ -38,6 +40,7 @@ public class PagamentoAppService(IPagamentoRepositorio repositorio) : IPagamento
 
         pagamento.Aprovar();
         await repositorio.SalvarAlteracoesAsync(cancellationToken);
+        await PublicarStatusAlteradoAsync(pagamento, cancellationToken);
 
         return PagamentoResponse.DeEntidade(pagamento);
     }
@@ -50,6 +53,7 @@ public class PagamentoAppService(IPagamentoRepositorio repositorio) : IPagamento
 
         pagamento.Recusar();
         await repositorio.SalvarAlteracoesAsync(cancellationToken);
+        await PublicarStatusAlteradoAsync(pagamento, cancellationToken);
 
         return PagamentoResponse.DeEntidade(pagamento);
     }
@@ -62,7 +66,16 @@ public class PagamentoAppService(IPagamentoRepositorio repositorio) : IPagamento
 
         pagamento.Estornar();
         await repositorio.SalvarAlteracoesAsync(cancellationToken);
+        await PublicarStatusAlteradoAsync(pagamento, cancellationToken);
 
         return PagamentoResponse.DeEntidade(pagamento);
     }
+
+    private Task PublicarStatusAlteradoAsync(EntidadePagamento pagamento, CancellationToken cancellationToken) =>
+        eventoPublisher.PublicarStatusAlteradoAsync(
+            pagamento.Id,
+            pagamento.IngressoId,
+            pagamento.Valor,
+            pagamento.Status.ToString(),
+            cancellationToken);
 }
