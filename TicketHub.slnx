@@ -8,6 +8,9 @@
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Auth/">
     <Project Path="src/Services/Auth/Auth.Api/Auth.Api.csproj" />
+    <Project Path="src/Services/Auth/Auth.Application/Auth.Application.csproj" />
+    <Project Path="src/Services/Auth/Auth.Domain/Auth.Domain.csproj" />
+    <Project Path="src/Services/Auth/Auth.Infrastructure/Auth.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Services/Eventos/">
     <Project Path="src/Services/Eventos/Eventos.Api/Eventos.Api.csproj" />
