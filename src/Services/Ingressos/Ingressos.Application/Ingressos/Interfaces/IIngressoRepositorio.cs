@@ -6,5 +6,6 @@ public interface IIngressoRepositorio
 {
     Task AdicionarAsync(Ingresso ingresso, CancellationToken cancellationToken);
     Task<Ingresso?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Ingresso>> ListarAsync(Guid? eventoId, CancellationToken cancellationToken);
     Task SalvarAlteracoesAsync(CancellationToken cancellationToken);
 }

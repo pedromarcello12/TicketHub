@@ -22,4 +22,47 @@ public class IngressoAppService(IIngressoRepositorio repositorio) : IIngressoApp
 
         return ingresso is null ? null : IngressoResponse.DeEntidade(ingresso);
     }
+
+    public async Task<IReadOnlyList<IngressoResponse>> ListarAsync(Guid? eventoId, CancellationToken cancellationToken)
+    {
+        var ingressos = await repositorio.ListarAsync(eventoId, cancellationToken);
+
+        return ingressos.Select(IngressoResponse.DeEntidade).ToList();
+    }
+
+    public async Task<IngressoResponse?> ReservarAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var ingresso = await repositorio.ObterPorIdAsync(id, cancellationToken);
+        if (ingresso is null)
+            return null;
+
+        ingresso.Reservar();
+        await repositorio.SalvarAlteracoesAsync(cancellationToken);
+
+        return IngressoResponse.DeEntidade(ingresso);
+    }
+
+    public async Task<IngressoResponse?> ConfirmarVendaAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var ingresso = await repositorio.ObterPorIdAsync(id, cancellationToken);
+        if (ingresso is null)
+            return null;
+
+        ingresso.ConfirmarVenda();
+        await repositorio.SalvarAlteracoesAsync(cancellationToken);
+
+        return IngressoResponse.DeEntidade(ingresso);
+    }
+
+    public async Task<IngressoResponse?> CancelarAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var ingresso = await repositorio.ObterPorIdAsync(id, cancellationToken);
+        if (ingresso is null)
+            return null;
+
+        ingresso.Cancelar();
+        await repositorio.SalvarAlteracoesAsync(cancellationToken);
+
+        return IngressoResponse.DeEntidade(ingresso);
+    }
 }

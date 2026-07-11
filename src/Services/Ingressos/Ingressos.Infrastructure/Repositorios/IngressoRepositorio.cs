@@ -17,6 +17,16 @@ public class IngressoRepositorio(IngressosDbContext dbContext) : IIngressoReposi
         return await dbContext.Ingressos.FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Ingresso>> ListarAsync(Guid? eventoId, CancellationToken cancellationToken)
+    {
+        var query = dbContext.Ingressos.AsQueryable();
+
+        if (eventoId is not null)
+            query = query.Where(i => i.EventoId == eventoId);
+
+        return await query.OrderBy(i => i.CriadoEm).ToListAsync(cancellationToken);
+    }
+
     public async Task SalvarAlteracoesAsync(CancellationToken cancellationToken)
     {
         await dbContext.SaveChangesAsync(cancellationToken);
