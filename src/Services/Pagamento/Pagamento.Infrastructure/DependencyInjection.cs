@@ -26,9 +26,8 @@ public static class DependencyInjection
         services.AddHttpClient<IIngressoExternalService, HttpIngressoExternalService>(client =>
             {
                 client.BaseAddress = new Uri(servicosExternos.IngressosApiBaseUrl);
-                client.Timeout = TimeSpan.FromSeconds(5);
             })
-            .AddStandardResilienceHandler();
+            .AddStandardResilienceHandler(ResilienciaHttpConfiguracao.Configurar);
 
         services.AddScoped<IPagamentoRepositorio, PagamentoRepositorio>();
         services.AddScoped<IPagamentoEventoPublisher, PagamentoEventoPublisher>();

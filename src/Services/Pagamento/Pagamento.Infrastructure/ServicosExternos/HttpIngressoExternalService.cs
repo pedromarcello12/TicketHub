@@ -1,5 +1,7 @@
 using System.Net;
 using Pagamento.Application.Pagamentos.Interfaces;
+using Polly.CircuitBreaker;
+using Polly.Timeout;
 using TicketHub.Core.Excecoes;
 
 namespace Pagamento.Infrastructure.ServicosExternos;
@@ -28,6 +30,14 @@ public class HttpIngressoExternalService(HttpClient httpClient) : IIngressoExter
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             throw new ServicoExternoIndisponivelException("Servico de Ingressos nao respondeu a tempo.", ex);
+        }
+        catch (TimeoutRejectedException ex)
+        {
+            throw new ServicoExternoIndisponivelException("Servico de Ingressos nao respondeu a tempo.", ex);
+        }
+        catch (BrokenCircuitException ex)
+        {
+            throw new ServicoExternoIndisponivelException("Servico de Ingressos esta indisponivel (circuito aberto).", ex);
         }
     }
 }
