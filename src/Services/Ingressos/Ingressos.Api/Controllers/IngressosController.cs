@@ -37,31 +37,26 @@ public class IngressosController(IIngressoAppService ingressoAppService) : Contr
     }
 
     [HttpPost("{id:guid}/reservar")]
-    public Task<ActionResult<IngressoResponse>> Reservar(Guid id, CancellationToken cancellationToken) =>
-        AplicarTransicaoAsync(id, ingressoAppService.ReservarAsync, cancellationToken);
+    public async Task<ActionResult<IngressoResponse>> Reservar(Guid id, CancellationToken cancellationToken)
+    {
+        var ingresso = await ingressoAppService.ReservarAsync(id, cancellationToken);
+
+        return ingresso is null ? NotFound() : Ok(ingresso);
+    }
 
     [HttpPost("{id:guid}/confirmar-venda")]
-    public Task<ActionResult<IngressoResponse>> ConfirmarVenda(Guid id, CancellationToken cancellationToken) =>
-        AplicarTransicaoAsync(id, ingressoAppService.ConfirmarVendaAsync, cancellationToken);
+    public async Task<ActionResult<IngressoResponse>> ConfirmarVenda(Guid id, CancellationToken cancellationToken)
+    {
+        var ingresso = await ingressoAppService.ConfirmarVendaAsync(id, cancellationToken);
+
+        return ingresso is null ? NotFound() : Ok(ingresso);
+    }
 
     [HttpPost("{id:guid}/cancelar")]
-    public Task<ActionResult<IngressoResponse>> Cancelar(Guid id, CancellationToken cancellationToken) =>
-        AplicarTransicaoAsync(id, ingressoAppService.CancelarAsync, cancellationToken);
-
-    private async Task<ActionResult<IngressoResponse>> AplicarTransicaoAsync(
-        Guid id,
-        Func<Guid, CancellationToken, Task<IngressoResponse?>> transicao,
-        CancellationToken cancellationToken)
+    public async Task<ActionResult<IngressoResponse>> Cancelar(Guid id, CancellationToken cancellationToken)
     {
-        try
-        {
-            var ingresso = await transicao(id, cancellationToken);
+        var ingresso = await ingressoAppService.CancelarAsync(id, cancellationToken);
 
-            return ingresso is null ? NotFound() : Ok(ingresso);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new { mensagem = ex.Message });
-        }
+        return ingresso is null ? NotFound() : Ok(ingresso);
     }
 }
