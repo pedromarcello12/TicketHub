@@ -22,7 +22,9 @@ public class EventosController(IEventoAppService eventoAppService) : ControllerB
         return CreatedAtAction(nameof(ObterPorId), new { id = evento.Id }, evento);
     }
 
+    // Anonimo: consultado pelo Ingressos.Api para validacao cruzada de EventoId, sem token de servico.
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<EventoResponse>> ObterPorId(Guid id, CancellationToken cancellationToken)
     {
         var evento = await eventoAppService.ObterPorIdAsync(id, cancellationToken);

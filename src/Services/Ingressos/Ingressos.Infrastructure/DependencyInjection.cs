@@ -7,6 +7,7 @@ using Ingressos.Infrastructure.ServicosExternos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
 
 namespace Ingressos.Infrastructure;
 
@@ -23,9 +24,8 @@ public static class DependencyInjection
         services.AddHttpClient<IEventoExternalService, HttpEventoExternalService>(client =>
             {
                 client.BaseAddress = new Uri(servicosExternos.EventosApiBaseUrl);
-                client.Timeout = TimeSpan.FromSeconds(5);
             })
-            .AddStandardResilienceHandler();
+            .AddStandardResilienceHandler(ResilienciaHttpConfiguracao.Configurar);
 
         services.AddScoped<IIngressoRepositorio, IngressoRepositorio>();
         services.AddScoped<IIngressoAppService, IngressoAppService>();

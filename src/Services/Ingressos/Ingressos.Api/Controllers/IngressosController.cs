@@ -22,7 +22,9 @@ public class IngressosController(IIngressoAppService ingressoAppService) : Contr
         return CreatedAtAction(nameof(ObterPorId), new { id = ingresso.Id }, ingresso);
     }
 
+    // Anonimo: consultado pelo Pagamento.Api para validacao cruzada de IngressoId, sem token de servico.
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<IngressoResponse>> ObterPorId(Guid id, CancellationToken cancellationToken)
     {
         var ingresso = await ingressoAppService.ObterPorIdAsync(id, cancellationToken);

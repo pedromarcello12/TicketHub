@@ -1,5 +1,7 @@
 using System.Net;
 using Ingressos.Application.Ingressos.Interfaces;
+using Polly.CircuitBreaker;
+using Polly.Timeout;
 using TicketHub.Core.Excecoes;
 
 namespace Ingressos.Infrastructure.ServicosExternos;
@@ -28,6 +30,14 @@ public class HttpEventoExternalService(HttpClient httpClient) : IEventoExternalS
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             throw new ServicoExternoIndisponivelException("Servico de Eventos nao respondeu a tempo.", ex);
+        }
+        catch (TimeoutRejectedException ex)
+        {
+            throw new ServicoExternoIndisponivelException("Servico de Eventos nao respondeu a tempo.", ex);
+        }
+        catch (BrokenCircuitException ex)
+        {
+            throw new ServicoExternoIndisponivelException("Servico de Eventos esta indisponivel (circuito aberto).", ex);
         }
     }
 }
