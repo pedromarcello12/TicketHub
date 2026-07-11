@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pagamento.Application.Pagamentos.DTOs;
 using Pagamento.Application.Pagamentos.Interfaces;
@@ -5,6 +6,7 @@ using Pagamento.Application.Pagamentos.Interfaces;
 namespace Pagamento.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class PagamentosController(IPagamentoAppService pagamentoAppService) : ControllerBase
 {

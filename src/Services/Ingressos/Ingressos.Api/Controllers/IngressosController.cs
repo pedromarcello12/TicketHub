@@ -1,10 +1,12 @@
 using Ingressos.Application.Ingressos.DTOs;
 using Ingressos.Application.Ingressos.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ingressos.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class IngressosController(IIngressoAppService ingressoAppService) : ControllerBase
 {

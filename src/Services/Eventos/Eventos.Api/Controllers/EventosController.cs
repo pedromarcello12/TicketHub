@@ -1,10 +1,12 @@
 using Eventos.Application.Eventos.DTOs;
 using Eventos.Application.Eventos.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eventos.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class EventosController(IEventoAppService eventoAppService) : ControllerBase
 {

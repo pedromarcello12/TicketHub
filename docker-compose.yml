@@ -42,6 +42,17 @@ services:
       timeout: 5s
       retries: 10
 
+  auth-api:
+    build:
+      context: .
+      dockerfile: src/Services/Auth/Auth.Api/Dockerfile
+    container_name: tickethub-auth-api
+    ports:
+      - "5004:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+
   eventos-api:
     build:
       context: .

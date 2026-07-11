@@ -1,5 +1,6 @@
 using Pagamento.Api.Filtros;
 using Pagamento.Infrastructure;
+using TicketHub.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ builder.Services.AddControllers(options => options.Filters.Add<ApiExceptionFilte
 builder.Services.AddOpenApi();
 
 builder.Services.AdicionarInfrastructurePagamento(builder.Configuration);
+builder.Services.AdicionarAutenticacaoJwt(builder.Configuration);
 
 var app = builder.Build();
 
@@ -21,6 +23,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
