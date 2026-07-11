@@ -26,4 +26,9 @@
     <Project Path="src/Services/Pagamento/Pagamento.Domain/Pagamento.Domain.csproj" />
     <Project Path="src/Services/Pagamento/Pagamento.Infrastructure/Pagamento.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Eventos.Tests/Eventos.Tests.csproj" />
+    <Project Path="tests/Ingressos.Tests/Ingressos.Tests.csproj" />
+    <Project Path="tests/Pagamento.Tests/Pagamento.Tests.csproj" />
+  </Folder>
 </Solution>
