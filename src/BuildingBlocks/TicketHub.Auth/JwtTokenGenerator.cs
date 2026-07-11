@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace TicketHub.Auth;
 
-public class JwtTokenGenerator(IOptions<JwtOptions> opcoes)
+public class JwtTokenGenerator(IOptions<JwtOptions> opcoes) : IJwtTokenGenerator
 {
     public string GerarToken(string usuarioId, string nome, string papel)
     {

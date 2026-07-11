@@ -1,5 +1,6 @@
 using Auth.Api.Usuarios;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using TicketHub.Auth;
 
 namespace Auth.Api.Controllers;
@@ -10,7 +11,7 @@ public record LoginResponse(string Token, string Nome, string Papel, DateTime Ex
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(JwtTokenGenerator tokenGenerator, Microsoft.Extensions.Options.IOptions<JwtOptions> jwtOptions) : ControllerBase
+public class AuthController(IJwtTokenGenerator tokenGenerator, IOptions<JwtOptions> jwtOptions) : ControllerBase
 {
     [HttpPost("login")]
     public ActionResult<LoginResponse> Login([FromBody] LoginRequest request)
