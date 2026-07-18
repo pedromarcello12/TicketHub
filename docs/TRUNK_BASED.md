@@ -1,6 +1,6 @@
 # Fluxo de branches (Trunk-Based Development)
 
-Este projeto usa Trunk-Based Development: uma única branch principal (`master`, o "trunk"), sem `develop`, `release/*` ou `hotfix/*`.
+Este projeto usa Trunk-Based Development: uma única branch principal (`master`, o "trunk"), sem branches separadas de `develop`, `release/*` ou `hotfix/*`.
 
 ## Branch principal
 
