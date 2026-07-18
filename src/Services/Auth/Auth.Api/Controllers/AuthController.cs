@@ -1,6 +1,7 @@
 using Auth.Application.Auth.DTOs;
 using Auth.Application.Auth.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using TicketHub.Auth;
 
@@ -10,6 +11,7 @@ public record LoginResponse(string Token, string Nome, string Papel, DateTime Ex
 
 [ApiController]
 [Route("api/auth")]
+[EnableRateLimiting(RateLimitingPolicies.Login)]
 public class AuthController(
     IAuthAppService authAppService,
     IJwtTokenGenerator tokenGenerator,
