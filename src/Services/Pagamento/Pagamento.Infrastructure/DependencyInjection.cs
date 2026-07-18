@@ -7,6 +7,7 @@ using Pagamento.Infrastructure.Integracao;
 using Pagamento.Infrastructure.Persistencia;
 using Pagamento.Infrastructure.Repositorios;
 using Pagamento.Infrastructure.ServicosExternos;
+using TicketHub.Auth;
 using TicketHub.MessageBus;
 
 namespace Pagamento.Infrastructure;
@@ -23,10 +24,13 @@ public static class DependencyInjection
         var servicosExternos = new ServicosExternosOptions();
         configuration.GetSection(ServicosExternosOptions.SectionName).Bind(servicosExternos);
 
+        services.AdicionarClienteServicoInterno(configuration);
+
         services.AddHttpClient<IIngressoExternalService, HttpIngressoExternalService>(client =>
             {
                 client.BaseAddress = new Uri(servicosExternos.IngressosApiBaseUrl);
             })
+            .AddHttpMessageHandler<AuthTokenDelegatingHandler>()
             .AddStandardResilienceHandler(ResilienciaHttpConfiguracao.Configurar);
 
         services.AddScoped<IPagamentoRepositorio, PagamentoRepositorio>();

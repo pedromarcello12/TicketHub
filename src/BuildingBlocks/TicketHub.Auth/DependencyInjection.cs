@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace TicketHub.Auth;
@@ -39,6 +40,23 @@ public static class DependencyInjection
             });
 
         services.AddAuthorization();
+
+        return services;
+    }
+
+    public static IServiceCollection AdicionarClienteServicoInterno(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<ServicoInternoOptions>(configuration.GetSection(ServicoInternoOptions.SectionName));
+
+        services.AddHttpClient(ServicoInternoConstantes.NomeHttpClient, (provedor, client) =>
+        {
+            var opcoes = provedor.GetRequiredService<IOptions<ServicoInternoOptions>>().Value;
+            client.BaseAddress = new Uri(opcoes.AuthApiBaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(3);
+        });
+
+        services.AddSingleton<ServicoTokenProvider>();
+        services.AddTransient<AuthTokenDelegatingHandler>();
 
         return services;
     }
