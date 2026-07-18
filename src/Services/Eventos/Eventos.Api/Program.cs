@@ -1,3 +1,4 @@
+using Eventos.Api.Filtros;
 using Eventos.Infrastructure;
 using Eventos.Infrastructure.Persistencia;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options => options.Filters.Add<ApiExceptionFilter>());
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
