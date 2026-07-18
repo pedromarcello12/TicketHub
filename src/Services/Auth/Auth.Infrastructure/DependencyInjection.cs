@@ -1,3 +1,4 @@
+using Auth.Application.Auth;
 using Auth.Application.Auth.Interfaces;
 using Auth.Application.Auth.Servicos;
 using Auth.Infrastructure.Persistencia;
@@ -16,7 +17,10 @@ public static class DependencyInjection
         services.AddDbContext<AuthDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("AuthDb")));
 
+        services.Configure<RefreshTokenOptions>(configuration.GetSection(RefreshTokenOptions.SectionName));
+
         services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
+        services.AddScoped<IRefreshTokenRepositorio, RefreshTokenRepositorio>();
         services.AddSingleton<IPasswordHasher, PasswordHasherAdapter>();
         services.AddScoped<IAuthAppService, AuthAppService>();
 
