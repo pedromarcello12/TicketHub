@@ -4,6 +4,7 @@ namespace Auth.Application.Auth.Interfaces;
 
 public interface IAuthAppService
 {
-    Task<UsuarioResponse> RegistrarAsync(RegistrarUsuarioRequest request, CancellationToken cancellationToken);
-    Task<UsuarioResponse?> AutenticarAsync(LoginRequest request, CancellationToken cancellationToken);
+    Task<ResultadoAutenticacao> RegistrarAsync(RegistrarUsuarioRequest request, CancellationToken cancellationToken);
+    Task<ResultadoAutenticacao?> AutenticarAsync(LoginRequest request, CancellationToken cancellationToken);
+    Task<ResultadoAutenticacao?> RenovarTokenAsync(string refreshToken, CancellationToken cancellationToken);
 }

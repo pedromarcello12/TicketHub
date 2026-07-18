@@ -24,11 +24,12 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task Login_ComCredenciaisValidas_DeveRetornarOkComToken()
+    public async Task Login_ComCredenciaisValidas_DeveRetornarOkComTokenERefreshToken()
     {
         var usuarioId = Guid.NewGuid();
         var usuario = new UsuarioResponse(usuarioId, "admin", "Administrador TicketHub", "Administrador");
-        _authAppService.AutenticarAsync(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>()).Returns(usuario);
+        var resultadoAutenticacao = new ResultadoAutenticacao(usuario, "refresh-fake");
+        _authAppService.AutenticarAsync(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>()).Returns(resultadoAutenticacao);
         _tokenGenerator.GerarToken(usuarioId.ToString(), usuario.Nome, usuario.Papel).Returns("token-fake");
 
         var resultado = await _sut.Login(new LoginRequest("admin", "admin123"), CancellationToken.None);
@@ -36,13 +37,14 @@ public class AuthControllerTests
         var ok = resultado.Result.Should().BeOfType<OkObjectResult>().Subject;
         var corpo = ok.Value.Should().BeOfType<LoginResponse>().Subject;
         corpo.Token.Should().Be("token-fake");
+        corpo.RefreshToken.Should().Be("refresh-fake");
         corpo.Papel.Should().Be("Administrador");
     }
 
     [Fact]
     public async Task Login_ComCredenciaisInvalidas_DeveRetornarUnauthorized()
     {
-        _authAppService.AutenticarAsync(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>()).Returns((UsuarioResponse?)null);
+        _authAppService.AutenticarAsync(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>()).Returns((ResultadoAutenticacao?)null);
 
         var resultado = await _sut.Login(new LoginRequest("admin", "senha-errada"), CancellationToken.None);
 
@@ -55,7 +57,8 @@ public class AuthControllerTests
     {
         var usuarioId = Guid.NewGuid();
         var usuario = new UsuarioResponse(usuarioId, "novo", "Novo Usuario", "Cliente");
-        _authAppService.RegistrarAsync(Arg.Any<RegistrarUsuarioRequest>(), Arg.Any<CancellationToken>()).Returns(usuario);
+        var resultadoAutenticacao = new ResultadoAutenticacao(usuario, "refresh-fake");
+        _authAppService.RegistrarAsync(Arg.Any<RegistrarUsuarioRequest>(), Arg.Any<CancellationToken>()).Returns(resultadoAutenticacao);
         _tokenGenerator.GerarToken(usuarioId.ToString(), usuario.Nome, usuario.Papel).Returns("token-fake");
 
         var resultado = await _sut.Registrar(new RegistrarUsuarioRequest("novo", "senha123", "Novo Usuario"), CancellationToken.None);
@@ -64,5 +67,31 @@ public class AuthControllerTests
         criado.StatusCode.Should().Be(StatusCodes.Status201Created);
         var corpo = criado.Value.Should().BeOfType<LoginResponse>().Subject;
         corpo.Papel.Should().Be("Cliente");
+    }
+
+    [Fact]
+    public async Task Refresh_ComTokenValido_DeveRetornarOkComNovoToken()
+    {
+        var usuarioId = Guid.NewGuid();
+        var usuario = new UsuarioResponse(usuarioId, "admin", "Administrador TicketHub", "Administrador");
+        var resultadoAutenticacao = new ResultadoAutenticacao(usuario, "novo-refresh");
+        _authAppService.RenovarTokenAsync("refresh-antigo", Arg.Any<CancellationToken>()).Returns(resultadoAutenticacao);
+        _tokenGenerator.GerarToken(usuarioId.ToString(), usuario.Nome, usuario.Papel).Returns("token-fake");
+
+        var resultado = await _sut.Refresh(new RefreshTokenRequest("refresh-antigo"), CancellationToken.None);
+
+        var ok = resultado.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var corpo = ok.Value.Should().BeOfType<LoginResponse>().Subject;
+        corpo.RefreshToken.Should().Be("novo-refresh");
+    }
+
+    [Fact]
+    public async Task Refresh_ComTokenInvalido_DeveRetornarUnauthorized()
+    {
+        _authAppService.RenovarTokenAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((ResultadoAutenticacao?)null);
+
+        var resultado = await _sut.Refresh(new RefreshTokenRequest("invalido"), CancellationToken.None);
+
+        resultado.Result.Should().BeOfType<UnauthorizedObjectResult>();
     }
 }
