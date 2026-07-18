@@ -7,6 +7,11 @@ namespace Auth.Infrastructure.Repositorios;
 
 public class UsuarioRepositorio(AuthDbContext dbContext) : IUsuarioRepositorio
 {
+    public async Task<Usuario?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await dbContext.Usuarios.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+    }
+
     public async Task<Usuario?> ObterPorNomeUsuarioAsync(string nomeUsuario, CancellationToken cancellationToken)
     {
         return await dbContext.Usuarios

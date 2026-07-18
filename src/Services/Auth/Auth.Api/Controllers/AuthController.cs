@@ -7,7 +7,7 @@ using TicketHub.Auth;
 
 namespace Auth.Api.Controllers;
 
-public record LoginResponse(string Token, string Nome, string Papel, DateTime ExpiraEm);
+public record LoginResponse(string Token, string RefreshToken, string Nome, string Papel, DateTime ExpiraEm);
 
 [ApiController]
 [Route("api/auth")]
@@ -20,26 +20,36 @@ public class AuthController(
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
-        var usuario = await authAppService.AutenticarAsync(request, cancellationToken);
-        if (usuario is null)
+        var resultado = await authAppService.AutenticarAsync(request, cancellationToken);
+        if (resultado is null)
             return Unauthorized(new { mensagem = "Usuário ou senha inválidos." });
 
-        return Ok(GerarResposta(usuario));
+        return Ok(GerarResposta(resultado));
     }
 
     [HttpPost("registrar")]
     public async Task<ActionResult<LoginResponse>> Registrar([FromBody] RegistrarUsuarioRequest request, CancellationToken cancellationToken)
     {
-        var usuario = await authAppService.RegistrarAsync(request, cancellationToken);
+        var resultado = await authAppService.RegistrarAsync(request, cancellationToken);
 
-        return StatusCode(StatusCodes.Status201Created, GerarResposta(usuario));
+        return StatusCode(StatusCodes.Status201Created, GerarResposta(resultado));
     }
 
-    private LoginResponse GerarResposta(UsuarioResponse usuario)
+    [HttpPost("refresh")]
+    public async Task<ActionResult<LoginResponse>> Refresh([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
     {
-        var token = tokenGenerator.GerarToken(usuario.Id.ToString(), usuario.Nome, usuario.Papel);
+        var resultado = await authAppService.RenovarTokenAsync(request.RefreshToken, cancellationToken);
+        if (resultado is null)
+            return Unauthorized(new { mensagem = "Refresh token inválido ou expirado." });
+
+        return Ok(GerarResposta(resultado));
+    }
+
+    private LoginResponse GerarResposta(ResultadoAutenticacao resultado)
+    {
+        var token = tokenGenerator.GerarToken(resultado.Usuario.Id.ToString(), resultado.Usuario.Nome, resultado.Usuario.Papel);
         var expiraEm = DateTime.UtcNow.AddMinutes(jwtOptions.Value.ExpiracaoMinutos);
 
-        return new LoginResponse(token, usuario.Nome, usuario.Papel, expiraEm);
+        return new LoginResponse(token, resultado.RefreshToken, resultado.Usuario.Nome, resultado.Usuario.Papel, expiraEm);
     }
 }
