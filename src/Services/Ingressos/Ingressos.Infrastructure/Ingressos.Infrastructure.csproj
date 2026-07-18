@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Ingressos.Domain\Ingressos.Domain.csproj" />
     <ProjectReference Include="..\Ingressos.Application\Ingressos.Application.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\TicketHub.MessageBus\TicketHub.MessageBus.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\TicketHub.Auth\TicketHub.Auth.csproj" />
   </ItemGroup>
 
   <ItemGroup>

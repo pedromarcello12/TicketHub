@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Pagamento.Domain\Pagamento.Domain.csproj" />
     <ProjectReference Include="..\Pagamento.Application\Pagamento.Application.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\TicketHub.MessageBus\TicketHub.MessageBus.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\TicketHub.Auth\TicketHub.Auth.csproj" />
   </ItemGroup>
 
   <ItemGroup>

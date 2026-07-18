@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
+using TicketHub.Auth;
 
 namespace Ingressos.Infrastructure;
 
@@ -21,10 +22,13 @@ public static class DependencyInjection
         var servicosExternos = new ServicosExternosOptions();
         configuration.GetSection(ServicosExternosOptions.SectionName).Bind(servicosExternos);
 
+        services.AdicionarClienteServicoInterno(configuration);
+
         services.AddHttpClient<IEventoExternalService, HttpEventoExternalService>(client =>
             {
                 client.BaseAddress = new Uri(servicosExternos.EventosApiBaseUrl);
             })
+            .AddHttpMessageHandler<AuthTokenDelegatingHandler>()
             .AddStandardResilienceHandler(ResilienciaHttpConfiguracao.Configurar);
 
         services.AddScoped<IIngressoRepositorio, IngressoRepositorio>();
