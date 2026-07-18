@@ -58,15 +58,8 @@ public class EventosController(IEventoAppService eventoAppService) : ControllerB
         Func<Guid, CancellationToken, Task<EventoResponse?>> transicao,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var evento = await transicao(id, cancellationToken);
+        var evento = await transicao(id, cancellationToken);
 
-            return evento is null ? NotFound() : Ok(evento);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new { mensagem = ex.Message });
-        }
+        return evento is null ? NotFound() : Ok(evento);
     }
 }
