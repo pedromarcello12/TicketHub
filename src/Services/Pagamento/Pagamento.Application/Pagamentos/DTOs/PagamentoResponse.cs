@@ -7,12 +7,14 @@ public record PagamentoResponse(
     Guid IngressoId,
     decimal Valor,
     string Metodo,
-    string Status)
+    string Status,
+    string EmailCliente)
 {
     public static PagamentoResponse DeEntidade(EntidadePagamento pagamento) => new(
         pagamento.Id,
         pagamento.IngressoId,
         pagamento.Valor,
         pagamento.Metodo.ToString(),
-        pagamento.Status.ToString());
+        pagamento.Status.ToString(),
+        pagamento.EmailCliente);
 }

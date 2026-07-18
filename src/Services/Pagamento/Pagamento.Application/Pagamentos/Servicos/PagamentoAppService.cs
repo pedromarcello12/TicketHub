@@ -16,7 +16,7 @@ public class PagamentoAppService(
         if (!ingressoExiste)
             throw new RecursoRelacionadoNaoEncontradoException($"Ingresso '{request.IngressoId}' não encontrado.");
 
-        var pagamento = new EntidadePagamento(request.IngressoId, request.Valor, request.Metodo);
+        var pagamento = new EntidadePagamento(request.IngressoId, request.Valor, request.Metodo, request.EmailCliente);
 
         await repositorio.AdicionarAsync(pagamento, cancellationToken);
         await repositorio.SalvarAlteracoesAsync(cancellationToken);
@@ -83,5 +83,6 @@ public class PagamentoAppService(
             pagamento.IngressoId,
             pagamento.Valor,
             pagamento.Status.ToString(),
+            pagamento.EmailCliente,
             cancellationToken);
 }
