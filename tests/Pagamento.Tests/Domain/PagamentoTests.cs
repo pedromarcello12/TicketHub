@@ -8,7 +8,7 @@ namespace Pagamento.Tests.Domain;
 public class PagamentoTests
 {
     private static EntidadePagamento CriarPagamentoValido() =>
-        new(Guid.NewGuid(), 100m, MetodoPagamento.Pix);
+        new(Guid.NewGuid(), 100m, MetodoPagamento.Pix, "cliente@teste.com");
 
     [Fact]
     public void Construtor_DeveCriarComStatusPendente()
@@ -21,7 +21,7 @@ public class PagamentoTests
     [Fact]
     public void Construtor_ComIngressoIdVazio_DeveLancarExcecao()
     {
-        var acao = () => new EntidadePagamento(Guid.Empty, 100m, MetodoPagamento.Pix);
+        var acao = () => new EntidadePagamento(Guid.Empty, 100m, MetodoPagamento.Pix, "cliente@teste.com");
 
         acao.Should().Throw<ArgumentException>();
     }
@@ -31,7 +31,18 @@ public class PagamentoTests
     [InlineData(-10)]
     public void Construtor_ComValorInvalido_DeveLancarExcecao(decimal valor)
     {
-        var acao = () => new EntidadePagamento(Guid.NewGuid(), valor, MetodoPagamento.Pix);
+        var acao = () => new EntidadePagamento(Guid.NewGuid(), valor, MetodoPagamento.Pix, "cliente@teste.com");
+
+        acao.Should().Throw<ArgumentException>();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("sem-arroba")]
+    public void Construtor_ComEmailInvalido_DeveLancarExcecao(string email)
+    {
+        var acao = () => new EntidadePagamento(Guid.NewGuid(), 100m, MetodoPagamento.Pix, email);
 
         acao.Should().Throw<ArgumentException>();
     }

@@ -42,6 +42,13 @@ services:
       timeout: 5s
       retries: 10
 
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: tickethub-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
   auth-api:
     build:
       context: .
@@ -125,6 +132,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+      mailhog:
+        condition: service_started
 
 volumes:
   sqlserver-data:

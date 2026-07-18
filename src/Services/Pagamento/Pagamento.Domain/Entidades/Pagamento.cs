@@ -9,10 +9,11 @@ public class Pagamento : EntidadeBase
     public decimal Valor { get; private set; }
     public MetodoPagamento Metodo { get; private set; }
     public StatusPagamento Status { get; private set; }
+    public string EmailCliente { get; private set; } = string.Empty;
 
     private Pagamento() { }
 
-    public Pagamento(Guid ingressoId, decimal valor, MetodoPagamento metodo)
+    public Pagamento(Guid ingressoId, decimal valor, MetodoPagamento metodo, string emailCliente)
     {
         if (ingressoId == Guid.Empty)
             throw new ArgumentException("O pagamento precisa estar vinculado a um ingresso.", nameof(ingressoId));
@@ -20,9 +21,13 @@ public class Pagamento : EntidadeBase
         if (valor <= 0)
             throw new ArgumentException("O valor do pagamento precisa ser maior que zero.", nameof(valor));
 
+        if (string.IsNullOrWhiteSpace(emailCliente) || !emailCliente.Contains('@'))
+            throw new ArgumentException("O email do cliente e obrigatorio e precisa ser valido.", nameof(emailCliente));
+
         IngressoId = ingressoId;
         Valor = valor;
         Metodo = metodo;
+        EmailCliente = emailCliente;
         Status = StatusPagamento.Pendente;
     }
 

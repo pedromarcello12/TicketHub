@@ -7,5 +7,6 @@ public interface IPagamentoEventoPublisher
         Guid ingressoId,
         decimal valor,
         string status,
+        string emailCliente,
         CancellationToken cancellationToken);
 }

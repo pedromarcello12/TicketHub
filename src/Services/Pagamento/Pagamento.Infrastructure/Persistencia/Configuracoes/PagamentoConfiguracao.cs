@@ -29,6 +29,10 @@ public class PagamentoConfiguracao : IEntityTypeConfiguration<EntidadePagamento>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(p => p.EmailCliente)
+            .IsRequired()
+            .HasMaxLength(256);
+
         builder.Property(p => p.CriadoEm)
             .IsRequired();
     }

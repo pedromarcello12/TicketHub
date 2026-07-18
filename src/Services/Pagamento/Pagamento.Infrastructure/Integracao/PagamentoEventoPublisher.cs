@@ -11,6 +11,7 @@ public class PagamentoEventoPublisher(IEventoPublisher eventoPublisher) : IPagam
         Guid ingressoId,
         decimal valor,
         string status,
+        string emailCliente,
         CancellationToken cancellationToken)
     {
         var evento = new PagamentoStatusAlteradoEvent
@@ -18,7 +19,8 @@ public class PagamentoEventoPublisher(IEventoPublisher eventoPublisher) : IPagam
             PagamentoId = pagamentoId,
             IngressoId = ingressoId,
             Valor = valor,
-            Status = status
+            Status = status,
+            EmailCliente = emailCliente
         };
 
         eventoPublisher.Publicar(evento, RabbitMqConstantes.RoutingKeys.PagamentoStatusAlterado);
