@@ -11,6 +11,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AdicionarInfrastructureEventos(builder.Configuration);
 builder.Services.AdicionarAutenticacaoJwt(builder.Configuration);
+builder.Services.AdicionarRateLimiting();
 
 var app = builder.Build();
 
@@ -22,6 +23,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

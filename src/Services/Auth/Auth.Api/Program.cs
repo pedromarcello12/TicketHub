@@ -16,6 +16,7 @@ builder.Services.AddOpenApi();
 builder.Services.AdicionarEmissorJwt(builder.Configuration);
 builder.Services.AdicionarInfrastructureAuth(builder.Configuration);
 builder.Services.Configure<ServicoInternoOptions>(builder.Configuration.GetSection(ServicoInternoOptions.SectionName));
+builder.Services.AdicionarRateLimiting();
 
 var app = builder.Build();
 
@@ -36,6 +37,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRateLimiter();
 
 app.MapControllers();
 

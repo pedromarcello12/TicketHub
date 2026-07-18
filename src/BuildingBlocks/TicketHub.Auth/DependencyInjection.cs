@@ -1,5 +1,9 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -60,4 +64,39 @@ public static class DependencyInjection
 
         return services;
     }
+
+    public static IServiceCollection AdicionarRateLimiting(this IServiceCollection services)
+    {
+        services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: ObterChaveParticao(httpContext),
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 100,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    }));
+
+            options.AddPolicy(RateLimitingPolicies.Login, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: ObterChaveParticao(httpContext),
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    }));
+        });
+
+        return services;
+    }
+
+    private static string ObterChaveParticao(HttpContext httpContext) =>
+        httpContext.User.Identity?.Name
+        ?? httpContext.Connection.RemoteIpAddress?.ToString()
+        ?? "desconhecido";
 }
