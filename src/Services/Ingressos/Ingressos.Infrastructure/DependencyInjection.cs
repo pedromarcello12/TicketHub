@@ -1,5 +1,6 @@
 using Ingressos.Application.Ingressos.Interfaces;
 using Ingressos.Application.Ingressos.Servicos;
+using Ingressos.Infrastructure.Cache;
 using Ingressos.Infrastructure.Jobs;
 using Ingressos.Infrastructure.Persistencia;
 using Ingressos.Infrastructure.Repositorios;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
+using StackExchange.Redis;
 using TicketHub.Auth;
 
 namespace Ingressos.Infrastructure;
@@ -30,6 +32,12 @@ public static class DependencyInjection
             })
             .AddHttpMessageHandler<AuthTokenDelegatingHandler>()
             .AddStandardResilienceHandler(ResilienciaHttpConfiguracao.Configurar);
+
+        var redisOptions = new RedisOptions();
+        configuration.GetSection(RedisOptions.SectionName).Bind(redisOptions);
+
+        services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisOptions.ConnectionString));
+        services.AddSingleton<IDistributedLockService, RedisDistributedLockService>();
 
         services.AddScoped<IIngressoRepositorio, IngressoRepositorio>();
         services.AddScoped<IIngressoAppService, IngressoAppService>();

@@ -7,8 +7,11 @@ namespace Ingressos.Application.Ingressos.Servicos;
 
 public class IngressoAppService(
     IIngressoRepositorio repositorio,
-    IEventoExternalService eventoExternalService) : IIngressoAppService
+    IEventoExternalService eventoExternalService,
+    IDistributedLockService lockService) : IIngressoAppService
 {
+    private static readonly TimeSpan DuracaoLockReserva = TimeSpan.FromSeconds(5);
+
     public async Task<IngressoResponse> CriarAsync(CriarIngressoRequest request, CancellationToken cancellationToken)
     {
         var eventoExiste = await eventoExternalService.ExisteAsync(request.EventoId, cancellationToken);
@@ -39,6 +42,10 @@ public class IngressoAppService(
 
     public async Task<IngressoResponse?> ReservarAsync(Guid id, CancellationToken cancellationToken)
     {
+        await using var lockHandle = await lockService.AdquirirAsync($"ingresso-reserva:{id}", DuracaoLockReserva, cancellationToken);
+        if (lockHandle is null)
+            throw new InvalidOperationException("O ingresso está sendo processado por outra requisição, tente novamente em instantes.");
+
         var ingresso = await repositorio.ObterPorIdAsync(id, cancellationToken);
         if (ingresso is null)
             return null;
