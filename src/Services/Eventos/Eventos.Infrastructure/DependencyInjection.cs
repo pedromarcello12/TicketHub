@@ -1,5 +1,6 @@
 using Eventos.Application.Eventos.Interfaces;
 using Eventos.Application.Eventos.Servicos;
+using Eventos.Infrastructure.Cache;
 using Eventos.Infrastructure.Persistencia;
 using Eventos.Infrastructure.Repositorios;
 using Microsoft.EntityFrameworkCore;
@@ -15,8 +16,23 @@ public static class DependencyInjection
         services.AddDbContext<EventosDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("EventosDb")));
 
+        var redisConnectionString = configuration.GetConnectionString("Redis");
+        if (!string.IsNullOrWhiteSpace(redisConnectionString))
+        {
+            services.AddStackExchangeRedisCache(options =>
+                options.Configuration = redisConnectionString);
+        }
+        else
+        {
+            services.AddDistributedMemoryCache();
+        }
+
         services.AddScoped<IEventoRepositorio, EventoRepositorio>();
-        services.AddScoped<IEventoAppService, EventoAppService>();
+        services.AddScoped<EventoAppService>();
+        services.AddScoped<IEventoAppService>(sp =>
+            new CachedEventoAppService(
+                sp.GetRequiredService<EventoAppService>(),
+                sp.GetRequiredService<Microsoft.Extensions.Caching.Distributed.IDistributedCache>()));
 
         return services;
     }
