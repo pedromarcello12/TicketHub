@@ -6,7 +6,12 @@ namespace Notificacoes.Worker.Email;
 
 public class SmtpEmailSender(IOptions<EmailOptions> opcoes) : IEmailSender
 {
-    public async Task EnviarAsync(string destinatario, string assunto, string corpo, CancellationToken cancellationToken)
+    public async Task EnviarAsync(
+        string destinatario,
+        string assunto,
+        string corpo,
+        CancellationToken cancellationToken,
+        bool isHtml = false)
     {
         var configuracao = opcoes.Value;
 
@@ -18,7 +23,10 @@ public class SmtpEmailSender(IOptions<EmailOptions> opcoes) : IEmailSender
         if (!string.IsNullOrWhiteSpace(configuracao.UserName))
             client.Credentials = new NetworkCredential(configuracao.UserName, configuracao.Password);
 
-        using var mensagem = new MailMessage(configuracao.Remetente, destinatario, assunto, corpo);
+        using var mensagem = new MailMessage(configuracao.Remetente, destinatario, assunto, corpo)
+        {
+            IsBodyHtml = isHtml
+        };
 
         await client.SendMailAsync(mensagem, cancellationToken);
     }
