@@ -1,0 +1,116 @@
+name: Deploy — Azure Container Apps
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  AZURE_RESOURCE_GROUP: rg-tickethub
+  ACR_NAME: acrtickethub
+  LOCATION: brazilsouth
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Build e push das imagens para o ACR
+  # ─────────────────────────────────────────────
+  build-and-push:
+    name: Build & Push — ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    strategy:
+      matrix:
+        include:
+          - service: auth-api
+            dockerfile: src/Services/Auth/Auth.Api/Dockerfile
+          - service: eventos-api
+            dockerfile: src/Services/Eventos/Eventos.Api/Dockerfile
+          - service: ingressos-api
+            dockerfile: src/Services/Ingressos/Ingressos.Api/Dockerfile
+          - service: pagamento-api
+            dockerfile: src/Services/Pagamento/Pagamento.Api/Dockerfile
+          - service: notificacoes-worker
+            dockerfile: src/Services/Notificacoes/Notificacoes.Worker/Dockerfile
+          - service: frontend
+            dockerfile: src/frontend/Dockerfile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login ACR
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build e Push imagem
+        run: |
+          IMAGE=${{ env.ACR_NAME }}.azurecr.io/tickethub/${{ matrix.service }}:${{ github.sha }}
+          IMAGE_LATEST=${{ env.ACR_NAME }}.azurecr.io/tickethub/${{ matrix.service }}:latest
+
+          docker build \
+            -f ${{ matrix.dockerfile }} \
+            -t $IMAGE \
+            -t $IMAGE_LATEST \
+            .
+
+          docker push $IMAGE
+          docker push $IMAGE_LATEST
+
+  # ─────────────────────────────────────────────
+  # Deploy no Azure Container Apps
+  # ─────────────────────────────────────────────
+  deploy:
+    name: Deploy — ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: read
+      id-token: write
+
+    strategy:
+      matrix:
+        include:
+          - service: auth-api
+            container-app: ca-tickethub-auth
+            target-port: 8080
+          - service: eventos-api
+            container-app: ca-tickethub-eventos
+            target-port: 8080
+          - service: ingressos-api
+            container-app: ca-tickethub-ingressos
+            target-port: 8080
+          - service: pagamento-api
+            container-app: ca-tickethub-pagamento
+            target-port: 8080
+          - service: notificacoes-worker
+            container-app: ca-tickethub-notificacoes
+            target-port: 0
+          - service: frontend
+            container-app: ca-tickethub-frontend
+            target-port: 80
+
+    steps:
+      - name: Login Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Atualizar Container App
+        run: |
+          IMAGE=${{ env.ACR_NAME }}.azurecr.io/tickethub/${{ matrix.service }}:${{ github.sha }}
+
+          az containerapp update \
+            --name ${{ matrix.container-app }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --image $IMAGE
