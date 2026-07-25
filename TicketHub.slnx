@@ -4,6 +4,7 @@
     <Project Path="src/BuildingBlocks/TicketHub.Auth/TicketHub.Auth.csproj" />
     <Project Path="src/BuildingBlocks/TicketHub.Core/TicketHub.Core.csproj" />
     <Project Path="src/BuildingBlocks/TicketHub.MessageBus/TicketHub.MessageBus.csproj" />
+    <Project Path="src/BuildingBlocks/TicketHub.Observabilidade/TicketHub.Observabilidade.csproj" />
   </Folder>
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Auth/">
@@ -38,5 +39,6 @@
     <Project Path="tests/Eventos.Tests/Eventos.Tests.csproj" />
     <Project Path="tests/Ingressos.Tests/Ingressos.Tests.csproj" />
     <Project Path="tests/Pagamento.Tests/Pagamento.Tests.csproj" />
+    <Project Path="tests/TicketHub.IntegrationTests/TicketHub.IntegrationTests.csproj" />
   </Folder>
 </Solution>

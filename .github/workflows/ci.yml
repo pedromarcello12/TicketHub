@@ -28,8 +28,11 @@ jobs:
       - name: Build
         run: dotnet build TicketHub.slnx --no-restore --configuration Release
 
-      - name: Testes
-        run: dotnet test TicketHub.slnx --no-build --configuration Release --logger "trx;LogFileName=test-results.trx"
+      - name: Testes unitários
+        run: dotnet test TicketHub.slnx --no-build --configuration Release --logger "trx;LogFileName=test-results.trx" --filter "FullyQualifiedName!~IntegrationTests"
+
+      - name: Testes de integração
+        run: dotnet test tests/TicketHub.IntegrationTests/TicketHub.IntegrationTests.csproj --configuration Release --logger "trx;LogFileName=integration-test-results.trx"
 
       - name: Publicar resultados dos testes
         uses: dorny/test-reporter@v1
