@@ -49,6 +49,16 @@ services:
       - "1025:1025"
       - "8025:8025"
 
+  seq:
+    image: datalust/seq:2024.3
+    container_name: tickethub-seq
+    environment:
+      ACCEPT_EULA: "Y"
+    ports:
+      - "5341:80"
+    volumes:
+      - seq-data:/data
+
   auth-api:
     build:
       context: .
@@ -61,9 +71,12 @@ services:
       ASPNETCORE_URLS: http://+:8080
       Jwt__SecretKey: ${JWT_SECRET_KEY:?defina JWT_SECRET_KEY no arquivo .env}
       ServicoInterno__Senha: ${SERVICO_INTERNO_SENHA:?defina SERVICO_INTERNO_SENHA no arquivo .env}
+      Observabilidade__SeqUrl: http://seq:80
     depends_on:
       sqlserver:
         condition: service_healthy
+      seq:
+        condition: service_started
 
   eventos-api:
     build:
@@ -76,9 +89,14 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       Jwt__SecretKey: ${JWT_SECRET_KEY:?defina JWT_SECRET_KEY no arquivo .env}
+      Observabilidade__SeqUrl: http://seq:80
     depends_on:
       sqlserver:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      seq:
+        condition: service_started
 
   ingressos-api:
     build:
@@ -92,6 +110,7 @@ services:
       ASPNETCORE_URLS: http://+:8080
       Jwt__SecretKey: ${JWT_SECRET_KEY:?defina JWT_SECRET_KEY no arquivo .env}
       ServicoInterno__Senha: ${SERVICO_INTERNO_SENHA:?defina SERVICO_INTERNO_SENHA no arquivo .env}
+      Observabilidade__SeqUrl: http://seq:80
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -100,6 +119,8 @@ services:
       redis:
         condition: service_healthy
       auth-api:
+        condition: service_started
+      seq:
         condition: service_started
 
   pagamento-api:
@@ -114,12 +135,15 @@ services:
       ASPNETCORE_URLS: http://+:8080
       Jwt__SecretKey: ${JWT_SECRET_KEY:?defina JWT_SECRET_KEY no arquivo .env}
       ServicoInterno__Senha: ${SERVICO_INTERNO_SENHA:?defina SERVICO_INTERNO_SENHA no arquivo .env}
+      Observabilidade__SeqUrl: http://seq:80
     depends_on:
       sqlserver:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
       auth-api:
+        condition: service_started
+      seq:
         condition: service_started
 
   notificacoes-worker:
@@ -129,13 +153,30 @@ services:
     container_name: tickethub-notificacoes-worker
     environment:
       DOTNET_ENVIRONMENT: Development
+      Observabilidade__SeqUrl: http://seq:80
     depends_on:
       rabbitmq:
         condition: service_healthy
       mailhog:
         condition: service_started
+      seq:
+        condition: service_started
+
+  frontend:
+    build:
+      context: src/frontend
+      dockerfile: Dockerfile
+    container_name: tickethub-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - auth-api
+      - eventos-api
+      - ingressos-api
+      - pagamento-api
 
 volumes:
   sqlserver-data:
   rabbitmq-data:
   redis-data:
+  seq-data:
