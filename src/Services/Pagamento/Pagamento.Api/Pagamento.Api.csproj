@@ -19,6 +19,7 @@
     <ProjectReference Include="..\Pagamento.Application\Pagamento.Application.csproj" />
     <ProjectReference Include="..\Pagamento.Infrastructure\Pagamento.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\TicketHub.Auth\TicketHub.Auth.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\TicketHub.Observabilidade\TicketHub.Observabilidade.csproj" />
   </ItemGroup>
 
 </Project>

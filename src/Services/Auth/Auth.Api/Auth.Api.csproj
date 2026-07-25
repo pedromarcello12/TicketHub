@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\TicketHub.Auth\TicketHub.Auth.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\TicketHub.Observabilidade\TicketHub.Observabilidade.csproj" />
     <ProjectReference Include="..\Auth.Application\Auth.Application.csproj" />
     <ProjectReference Include="..\Auth.Infrastructure\Auth.Infrastructure.csproj" />
   </ItemGroup>

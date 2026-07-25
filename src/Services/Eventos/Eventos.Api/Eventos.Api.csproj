@@ -19,6 +19,7 @@
     <ProjectReference Include="..\Eventos.Application\Eventos.Application.csproj" />
     <ProjectReference Include="..\Eventos.Infrastructure\Eventos.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\TicketHub.Auth\TicketHub.Auth.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\TicketHub.Observabilidade\TicketHub.Observabilidade.csproj" />
   </ItemGroup>
 
 </Project>

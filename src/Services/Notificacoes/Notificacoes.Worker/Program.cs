@@ -1,8 +1,11 @@
 using Notificacoes.Worker.Email;
 using Notificacoes.Worker.Workers;
 using TicketHub.MessageBus;
+using TicketHub.Observabilidade;
 
 var builder = Host.CreateApplicationBuilder(args);
+
+builder.AdicionarObservabilidadeWorker("notificacoes-worker");
 
 builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.SectionName));
