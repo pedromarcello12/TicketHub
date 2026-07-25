@@ -7,7 +7,7 @@ using TicketHub.Auth;
 
 namespace Auth.Api.Controllers;
 
-public record LoginResponse(string Token, string RefreshToken, string Nome, string Papel, DateTime ExpiraEm);
+public record LoginResponse(string Token, string RefreshToken, string Nome, string Papel, string Email, DateTime ExpiraEm);
 
 [ApiController]
 [Route("api/auth")]
@@ -50,6 +50,6 @@ public class AuthController(
         var token = tokenGenerator.GerarToken(resultado.Usuario.Id.ToString(), resultado.Usuario.Nome, resultado.Usuario.Papel);
         var expiraEm = DateTime.UtcNow.AddMinutes(jwtOptions.Value.ExpiracaoMinutos);
 
-        return new LoginResponse(token, resultado.RefreshToken, resultado.Usuario.Nome, resultado.Usuario.Papel, expiraEm);
+        return new LoginResponse(token, resultado.RefreshToken, resultado.Usuario.Nome, resultado.Usuario.Papel, resultado.Usuario.Email, expiraEm);
     }
 }
