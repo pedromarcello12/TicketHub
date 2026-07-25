@@ -65,6 +65,24 @@ public static class DependencyInjection
         return services;
     }
 
+    public static IServiceCollection AdicionarCors(this IServiceCollection services, IConfiguration configuration)
+    {
+        var origensPermitidas = configuration
+            .GetSection("Cors:OrigensPermitidas")
+            .Get<string[]>()
+            ?? ["http://localhost:3000", "http://localhost:5173"];
+
+        services.AddCors(options =>
+            options.AddDefaultPolicy(policy =>
+                policy
+                    .WithOrigins(origensPermitidas)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials()));
+
+        return services;
+    }
+
     public static IServiceCollection AdicionarRateLimiting(this IServiceCollection services)
     {
         services.AddRateLimiter(options =>

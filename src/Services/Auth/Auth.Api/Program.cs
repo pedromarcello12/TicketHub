@@ -4,19 +4,24 @@ using Auth.Infrastructure.Persistencia;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TicketHub.Auth;
+using TicketHub.Observabilidade;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.AdicionarObservabilidade("auth-api");
+
+// Adiciona os serviços ao container.
 
 builder.Services.AddControllers(options => options.Filters.Add<ApiExceptionFilter>());
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// Saiba mais sobre como configurar o OpenAPI em https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 builder.Services.AdicionarEmissorJwt(builder.Configuration);
 builder.Services.AdicionarInfrastructureAuth(builder.Configuration);
 builder.Services.Configure<ServicoInternoOptions>(builder.Configuration.GetSection(ServicoInternoOptions.SectionName));
 builder.Services.AdicionarRateLimiting();
+builder.Services.AdicionarCors(builder.Configuration);
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -30,16 +35,19 @@ using (var scope = app.Services.CreateScope())
     await UsuariosSeeder.SemearAsync(dbContext, passwordHasher, servicoInterno, CancellationToken.None);
 }
 
-// Configure the HTTP request pipeline.
+// Configura o pipeline de requisições HTTP.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsProduction())
+    app.UseHttpsRedirection();
 
+app.UseCors();
 app.UseRateLimiter();
 
+app.MapHealthChecks("/health");
 app.MapControllers();
 
 app.Run();
