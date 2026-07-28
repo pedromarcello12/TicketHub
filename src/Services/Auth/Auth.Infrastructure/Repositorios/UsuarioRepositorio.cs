@@ -18,9 +18,20 @@ public class UsuarioRepositorio(AuthDbContext dbContext) : IUsuarioRepositorio
             .FirstOrDefaultAsync(u => u.NomeUsuario.ToLower() == nomeUsuario.ToLower(), cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Usuario>> ListarAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Usuarios.OrderBy(u => u.Nome).ToListAsync(cancellationToken);
+    }
+
     public async Task AdicionarAsync(Usuario usuario, CancellationToken cancellationToken)
     {
         await dbContext.Usuarios.AddAsync(usuario, cancellationToken);
+    }
+
+    public Task RemoverAsync(Usuario usuario, CancellationToken cancellationToken)
+    {
+        dbContext.Usuarios.Remove(usuario);
+        return Task.CompletedTask;
     }
 
     public async Task SalvarAlteracoesAsync(CancellationToken cancellationToken)

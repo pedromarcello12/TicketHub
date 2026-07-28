@@ -10,7 +10,7 @@ import type { LoginResponse } from '../types'
 interface UsuarioInfo {
   nome: string
   papel: string
-  email: string
+  nomeUsuario: string
 }
 
 interface AuthContextValue {
@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback((res: LoginResponse) => {
     localStorage.setItem('token', res.token)
-    const info: UsuarioInfo = { nome: res.nome, papel: res.papel, email: res.email }
+    const info: UsuarioInfo = { nome: res.nome, papel: res.papel, nomeUsuario: res.email }
     localStorage.setItem('usuario', JSON.stringify(info))
     setToken(res.token)
     setUsuario(info)

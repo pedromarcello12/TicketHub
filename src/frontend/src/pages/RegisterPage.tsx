@@ -6,9 +6,10 @@ import { useAuth } from '../contexts/AuthContext'
 export function RegisterPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [nomeUsuario, setNomeUsuario] = useState('')
   const [nome, setNome] = useState('')
-  const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const [papel, setPapel] = useState('Cliente')
   const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -17,7 +18,7 @@ export function RegisterPage() {
     setErro('')
     setLoading(true)
     try {
-      const res = await authApi.registrar({ nome, email, senha })
+      const res = await authApi.registrar({ nomeUsuario, nome, senha, papel })
       login(res)
       navigate('/')
     } catch (err: unknown) {
@@ -37,7 +38,18 @@ export function RegisterPage() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <label style={labelStyle}>
-            Nome
+            Usuário
+            <input
+              value={nomeUsuario}
+              onChange={(e) => setNomeUsuario(e.target.value)}
+              required
+              style={inputStyle}
+              placeholder="nome de usuário único"
+            />
+          </label>
+
+          <label style={labelStyle}>
+            Nome completo
             <input
               value={nome}
               onChange={(e) => setNome(e.target.value)}
@@ -48,14 +60,15 @@ export function RegisterPage() {
           </label>
 
           <label style={labelStyle}>
-            E-mail
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+            Perfil
+            <select
+              value={papel}
+              onChange={(e) => setPapel(e.target.value)}
               style={inputStyle}
-            />
+            >
+              <option value="Cliente">Cliente</option>
+              <option value="Administrador">Administrador</option>
+            </select>
           </label>
 
           <label style={labelStyle}>
