@@ -12,7 +12,7 @@ public class AuthAppService(
     IPasswordHasher passwordHasher,
     IOptions<RefreshTokenOptions> refreshTokenOpcoes) : IAuthAppService
 {
-    private const string PapelPadraoNovoUsuario = "Cliente";
+    private static readonly HashSet<string> PapeisValidos = ["Cliente", "Administrador"];
 
     public async Task<ResultadoAutenticacao> RegistrarAsync(RegistrarUsuarioRequest request, CancellationToken cancellationToken)
     {
@@ -20,8 +20,9 @@ public class AuthAppService(
         if (existente is not null)
             throw new InvalidOperationException($"Nome de usuário '{request.NomeUsuario}' já está em uso.");
 
+        var papel = PapeisValidos.Contains(request.Papel) ? request.Papel : "Cliente";
         var senhaHash = passwordHasher.Hash(request.Senha);
-        var usuario = new Usuario(request.NomeUsuario, senhaHash, request.Nome, PapelPadraoNovoUsuario);
+        var usuario = new Usuario(request.NomeUsuario, senhaHash, request.Nome, papel);
 
         await usuarioRepositorio.AdicionarAsync(usuario, cancellationToken);
         await usuarioRepositorio.SalvarAlteracoesAsync(cancellationToken);
@@ -59,6 +60,32 @@ public class AuthAppService(
         await refreshTokenRepositorio.SalvarAlteracoesAsync(cancellationToken);
 
         return new ResultadoAutenticacao(UsuarioResponse.DeEntidade(usuario), novoRefreshToken);
+    }
+
+    public async Task<UsuarioResponse?> ObterPerfilAsync(Guid usuarioId, CancellationToken cancellationToken)
+    {
+        var usuario = await usuarioRepositorio.ObterPorIdAsync(usuarioId, cancellationToken);
+        return usuario is null ? null : UsuarioResponse.DeEntidade(usuario);
+    }
+
+    public async Task<UsuarioResponse?> AtualizarPerfilAsync(Guid usuarioId, AtualizarPerfilRequest request, CancellationToken cancellationToken)
+    {
+        var usuario = await usuarioRepositorio.ObterPorIdAsync(usuarioId, cancellationToken);
+        if (usuario is null) return null;
+
+        if (!string.IsNullOrWhiteSpace(request.Nome))
+            usuario.AtualizarNome(request.Nome);
+
+        if (!string.IsNullOrWhiteSpace(request.SenhaAtual) && !string.IsNullOrWhiteSpace(request.NovaSenha))
+        {
+            if (!passwordHasher.Verificar(request.SenhaAtual, usuario.SenhaHash))
+                throw new InvalidOperationException("Senha atual incorreta.");
+
+            usuario.AtualizarSenhaHash(passwordHasher.Hash(request.NovaSenha));
+        }
+
+        await usuarioRepositorio.SalvarAlteracoesAsync(cancellationToken);
+        return UsuarioResponse.DeEntidade(usuario);
     }
 
     private async Task<string> CriarRefreshTokenAsync(Guid usuarioId, CancellationToken cancellationToken)

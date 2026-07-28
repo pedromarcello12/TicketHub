@@ -58,6 +58,20 @@ public class CachedEventoAppService(
         return resultado;
     }
 
+    public async Task<EventoResponse?> AtualizarAsync(Guid id, CriarEventoRequest request, CancellationToken cancellationToken)
+    {
+        var resultado = await inner.AtualizarAsync(id, request, cancellationToken);
+        await InvalidarEventoAsync(id, cancellationToken);
+        return resultado;
+    }
+
+    public async Task<bool> ExcluirAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var resultado = await inner.ExcluirAsync(id, cancellationToken);
+        await InvalidarEventoAsync(id, cancellationToken);
+        return resultado;
+    }
+
     public async Task<EventoResponse?> PublicarAsync(Guid id, CancellationToken cancellationToken)
     {
         var resultado = await inner.PublicarAsync(id, cancellationToken);

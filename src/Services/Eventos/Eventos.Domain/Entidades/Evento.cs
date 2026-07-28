@@ -57,4 +57,30 @@ public class Evento : EntidadeBase
 
         Status = StatusEvento.Encerrado;
     }
+
+    public void Atualizar(string nome, string local, DateTime dataHora, int capacidadeTotal)
+    {
+        if (Status != StatusEvento.Planejado)
+            throw new InvalidOperationException("Apenas eventos em planejamento podem ser editados.");
+
+        if (string.IsNullOrWhiteSpace(nome))
+            throw new ArgumentException("O nome do evento é obrigatório.", nameof(nome));
+
+        if (string.IsNullOrWhiteSpace(local))
+            throw new ArgumentException("O local do evento é obrigatório.", nameof(local));
+
+        if (capacidadeTotal <= 0)
+            throw new ArgumentException("A capacidade total precisa ser maior que zero.", nameof(capacidadeTotal));
+
+        Nome = nome;
+        Local = local;
+        DataHora = dataHora;
+        CapacidadeTotal = capacidadeTotal;
+    }
+
+    public void Excluir()
+    {
+        if (Status != StatusEvento.Planejado)
+            throw new InvalidOperationException("Apenas eventos em planejamento podem ser excluídos.");
+    }
 }

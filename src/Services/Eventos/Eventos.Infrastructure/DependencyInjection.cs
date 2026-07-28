@@ -1,8 +1,8 @@
+using Eventos.Application.Behaviors;
 using Eventos.Application.Eventos.Interfaces;
-using Eventos.Application.Eventos.Servicos;
-using Eventos.Infrastructure.Cache;
 using Eventos.Infrastructure.Persistencia;
 using Eventos.Infrastructure.Repositorios;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,8 +14,10 @@ public static class DependencyInjection
     public static IServiceCollection AdicionarInfrastructureEventos(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<EventosDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("EventosDb")));
+            options.UseSqlServer(configuration.GetConnectionString("EventosDb"),
+                sql => sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null)));
 
+        // Cache distribuído (Redis em produção, memória em dev sem Redis)
         var redisConnectionString = configuration.GetConnectionString("Redis");
         if (!string.IsNullOrWhiteSpace(redisConnectionString))
         {
@@ -28,11 +30,16 @@ public static class DependencyInjection
         }
 
         services.AddScoped<IEventoRepositorio, EventoRepositorio>();
-        services.AddScoped<EventoAppService>();
-        services.AddScoped<IEventoAppService>(sp =>
-            new CachedEventoAppService(
-                sp.GetRequiredService<EventoAppService>(),
-                sp.GetRequiredService<Microsoft.Extensions.Caching.Distributed.IDistributedCache>()));
+
+        // MediatR — registra todos os handlers do assembly Application
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssemblyContaining<Eventos.Application.Eventos.Queries.ListarEventosQuery>();
+
+            // Pipeline: Logging → Caching → Handler
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            cfg.AddOpenBehavior(typeof(CachingBehavior<,>));
+        });
 
         return services;
     }

@@ -27,7 +27,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-if (!app.Environment.IsProduction())
+if (app.Environment.IsProduction())
     app.UseHttpsRedirection();
 
 app.UseCors();

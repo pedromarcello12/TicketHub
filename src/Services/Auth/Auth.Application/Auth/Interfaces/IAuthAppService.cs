@@ -7,4 +7,6 @@ public interface IAuthAppService
     Task<ResultadoAutenticacao> RegistrarAsync(RegistrarUsuarioRequest request, CancellationToken cancellationToken);
     Task<ResultadoAutenticacao?> AutenticarAsync(LoginRequest request, CancellationToken cancellationToken);
     Task<ResultadoAutenticacao?> RenovarTokenAsync(string refreshToken, CancellationToken cancellationToken);
+    Task<UsuarioResponse?> ObterPerfilAsync(Guid usuarioId, CancellationToken cancellationToken);
+    Task<UsuarioResponse?> AtualizarPerfilAsync(Guid usuarioId, AtualizarPerfilRequest request, CancellationToken cancellationToken);
 }

@@ -13,6 +13,12 @@ public class IngressoRepositorio(IngressosDbContext dbContext) : IIngressoReposi
         await dbContext.Ingressos.AddAsync(ingresso, cancellationToken);
     }
 
+    public Task RemoverAsync(Ingresso ingresso, CancellationToken cancellationToken)
+    {
+        dbContext.Ingressos.Remove(ingresso);
+        return Task.CompletedTask;
+    }
+
     public async Task<Ingresso?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await dbContext.Ingressos.FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
