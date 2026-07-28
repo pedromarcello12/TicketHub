@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>tickethub-gateway-2026</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- YARP — Yet Another Reverse Proxy (Microsoft) -->
+    <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks\TicketHub.Auth\TicketHub.Auth.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\TicketHub.Observabilidade\TicketHub.Observabilidade.csproj" />
+  </ItemGroup>
+
+</Project>

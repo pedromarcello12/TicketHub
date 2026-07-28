@@ -6,6 +6,9 @@
     <Project Path="src/BuildingBlocks/TicketHub.MessageBus/TicketHub.MessageBus.csproj" />
     <Project Path="src/BuildingBlocks/TicketHub.Observabilidade/TicketHub.Observabilidade.csproj" />
   </Folder>
+  <Folder Name="/src/Gateway/">
+    <Project Path="src/Gateway/TicketHub.Gateway/TicketHub.Gateway.csproj" />
+  </Folder>
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Auth/">
     <Project Path="src/Services/Auth/Auth.Api/Auth.Api.csproj" />
