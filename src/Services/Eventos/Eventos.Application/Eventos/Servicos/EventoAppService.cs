@@ -30,6 +30,31 @@ public class EventoAppService(IEventoRepositorio repositorio) : IEventoAppServic
         return eventos.Select(EventoResponse.DeEntidade).ToList();
     }
 
+    public async Task<EventoResponse?> AtualizarAsync(Guid id, CriarEventoRequest request, CancellationToken cancellationToken)
+    {
+        var evento = await repositorio.ObterPorIdAsync(id, cancellationToken);
+        if (evento is null)
+            return null;
+
+        evento.Atualizar(request.Nome, request.Local, request.DataHora, request.CapacidadeTotal);
+        await repositorio.SalvarAlteracoesAsync(cancellationToken);
+
+        return EventoResponse.DeEntidade(evento);
+    }
+
+    public async Task<bool> ExcluirAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var evento = await repositorio.ObterPorIdAsync(id, cancellationToken);
+        if (evento is null)
+            return false;
+
+        evento.Excluir();
+        await repositorio.RemoverAsync(evento, cancellationToken);
+        await repositorio.SalvarAlteracoesAsync(cancellationToken);
+
+        return true;
+    }
+
     public async Task<EventoResponse?> PublicarAsync(Guid id, CancellationToken cancellationToken)
     {
         var evento = await repositorio.ObterPorIdAsync(id, cancellationToken);

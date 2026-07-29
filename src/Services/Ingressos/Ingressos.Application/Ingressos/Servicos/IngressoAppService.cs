@@ -37,6 +37,31 @@ public class IngressoAppService(
         return ingressos.Select(IngressoResponse.DeEntidade).ToList();
     }
 
+    public async Task<IngressoResponse?> AtualizarAsync(Guid id, AtualizarIngressoRequest request, CancellationToken cancellationToken)
+    {
+        var ingresso = await repositorio.ObterPorIdAsync(id, cancellationToken);
+        if (ingresso is null)
+            return null;
+
+        ingresso.Atualizar(request.TipoIngresso, request.Preco);
+        await repositorio.SalvarAlteracoesAsync(cancellationToken);
+
+        return IngressoResponse.DeEntidade(ingresso);
+    }
+
+    public async Task<bool> ExcluirAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var ingresso = await repositorio.ObterPorIdAsync(id, cancellationToken);
+        if (ingresso is null)
+            return false;
+
+        ingresso.Excluir();
+        await repositorio.RemoverAsync(ingresso, cancellationToken);
+        await repositorio.SalvarAlteracoesAsync(cancellationToken);
+
+        return true;
+    }
+
     public async Task<IngressoResponse?> ReservarAsync(Guid id, CancellationToken cancellationToken)
     {
         var ingresso = await repositorio.ObterPorIdAsync(id, cancellationToken);

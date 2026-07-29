@@ -5,6 +5,7 @@ namespace Ingressos.Application.Ingressos.Interfaces;
 public interface IIngressoRepositorio
 {
     Task AdicionarAsync(Ingresso ingresso, CancellationToken cancellationToken);
+    Task RemoverAsync(Ingresso ingresso, CancellationToken cancellationToken);
     Task<Ingresso?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken);
     Task<IReadOnlyList<Ingresso>> ListarAsync(Guid? eventoId, CancellationToken cancellationToken);
     Task<IReadOnlyList<Ingresso>> ListarReservasExpiradasAsync(DateTime agora, CancellationToken cancellationToken);

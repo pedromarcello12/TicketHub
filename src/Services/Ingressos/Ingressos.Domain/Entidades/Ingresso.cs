@@ -59,6 +59,27 @@ public class Ingresso : EntidadeBase
         ReservadoAte = null;
     }
 
+    public void Atualizar(string tipoIngresso, decimal preco)
+    {
+        if (Status != StatusIngresso.Disponivel)
+            throw new InvalidOperationException("Apenas ingressos disponíveis podem ser editados.");
+
+        if (string.IsNullOrWhiteSpace(tipoIngresso))
+            throw new ArgumentException("O tipo do ingresso é obrigatório.", nameof(tipoIngresso));
+
+        if (preco < 0)
+            throw new ArgumentException("O preço não pode ser negativo.", nameof(preco));
+
+        TipoIngresso = tipoIngresso;
+        Preco = preco;
+    }
+
+    public void Excluir()
+    {
+        if (Status != StatusIngresso.Disponivel)
+            throw new InvalidOperationException("Apenas ingressos disponíveis podem ser excluídos.");
+    }
+
     public void LiberarReservaExpirada(DateTime agora)
     {
         if (Status != StatusIngresso.Reservado || ReservadoAte is null || ReservadoAte > agora)

@@ -1,7 +1,11 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Pagamento.Application.Pagamentos.Commands;
 using Pagamento.Application.Pagamentos.DTOs;
-using Pagamento.Application.Pagamentos.Interfaces;
+using Pagamento.Application.Pagamentos.Queries;
 using TicketHub.Auth;
 
 namespace Pagamento.Api.Controllers;
@@ -9,14 +13,16 @@ namespace Pagamento.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class PagamentosController(IPagamentoAppService pagamentoAppService) : ControllerBase
+public class PagamentosController(ISender sender) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<PagamentoResponse>> Criar(
         [FromBody] CriarPagamentoRequest request,
         CancellationToken cancellationToken)
     {
-        var pagamento = await pagamentoAppService.CriarAsync(request, cancellationToken);
+        var pagamento = await sender.Send(
+            new CriarPagamentoCommand(request.IngressoId, request.Valor, request.Metodo, request.EmailCliente),
+            cancellationToken);
 
         return CreatedAtAction(nameof(ObterPorId), new { id = pagamento.Id }, pagamento);
     }
@@ -24,8 +30,7 @@ public class PagamentosController(IPagamentoAppService pagamentoAppService) : Co
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PagamentoResponse>> ObterPorId(Guid id, CancellationToken cancellationToken)
     {
-        var pagamento = await pagamentoAppService.ObterPorIdAsync(id, cancellationToken);
-
+        var pagamento = await sender.Send(new ObterPagamentoPorIdQuery(id), cancellationToken);
         return pagamento is null ? NotFound() : Ok(pagamento);
     }
 
@@ -34,8 +39,7 @@ public class PagamentosController(IPagamentoAppService pagamentoAppService) : Co
         [FromQuery] Guid? ingressoId,
         CancellationToken cancellationToken)
     {
-        var pagamentos = await pagamentoAppService.ListarAsync(ingressoId, cancellationToken);
-
+        var pagamentos = await sender.Send(new ListarPagamentosQuery(ingressoId), cancellationToken);
         return Ok(pagamentos);
     }
 
@@ -43,8 +47,7 @@ public class PagamentosController(IPagamentoAppService pagamentoAppService) : Co
     [Authorize(Roles = Papeis.Administrador)]
     public async Task<ActionResult<PagamentoResponse>> Aprovar(Guid id, CancellationToken cancellationToken)
     {
-        var pagamento = await pagamentoAppService.AprovarAsync(id, cancellationToken);
-
+        var pagamento = await sender.Send(new AprovarPagamentoCommand(id), cancellationToken);
         return pagamento is null ? NotFound() : Ok(pagamento);
     }
 
@@ -52,17 +55,29 @@ public class PagamentosController(IPagamentoAppService pagamentoAppService) : Co
     [Authorize(Roles = Papeis.Administrador)]
     public async Task<ActionResult<PagamentoResponse>> Recusar(Guid id, CancellationToken cancellationToken)
     {
-        var pagamento = await pagamentoAppService.RecusarAsync(id, cancellationToken);
-
+        var pagamento = await sender.Send(new RecusarPagamentoCommand(id), cancellationToken);
         return pagamento is null ? NotFound() : Ok(pagamento);
     }
 
     [HttpPost("{id:guid}/estornar")]
-    [Authorize(Roles = Papeis.Administrador)]
+    [Authorize]
     public async Task<ActionResult<PagamentoResponse>> Estornar(Guid id, CancellationToken cancellationToken)
     {
-        var pagamento = await pagamentoAppService.EstornarAsync(id, cancellationToken);
+        var isAdmin = User.IsInRole(Papeis.Administrador);
 
+        if (!isAdmin)
+        {
+            var nomeUsuarioAtual = User.FindFirstValue("nomeUsuario") ?? string.Empty;
+            var pagamentoExistente = await sender.Send(new ObterPagamentoPorIdQuery(id), cancellationToken);
+
+            if (pagamentoExistente is null)
+                return NotFound();
+
+            if (!string.Equals(pagamentoExistente.EmailCliente, nomeUsuarioAtual, StringComparison.OrdinalIgnoreCase))
+                return Forbid();
+        }
+
+        var pagamento = await sender.Send(new EstornarPagamentoCommand(id), cancellationToken);
         return pagamento is null ? NotFound() : Ok(pagamento);
     }
 }

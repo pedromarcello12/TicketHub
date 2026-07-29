@@ -1,4 +1,5 @@
-using Ingressos.Application.Ingressos.Interfaces;
+using Ingressos.Application.Ingressos.Commands;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -20,9 +21,9 @@ public class LiberacaoReservaExpiradaWorker(
             try
             {
                 using var scope = scopeFactory.CreateScope();
-                var ingressoAppService = scope.ServiceProvider.GetRequiredService<IIngressoAppService>();
+                var sender = scope.ServiceProvider.GetRequiredService<ISender>();
 
-                var quantidade = await ingressoAppService.LiberarReservasExpiradasAsync(stoppingToken);
+                var quantidade = await sender.Send(new LiberarReservasExpiradasCommand(), stoppingToken);
 
                 if (quantidade > 0)
                     logger.LogInformation("Reservas expiradas liberadas: {Quantidade}", quantidade);

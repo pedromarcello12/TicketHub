@@ -12,6 +12,12 @@ public class EventoRepositorio(EventosDbContext dbContext) : IEventoRepositorio
         await dbContext.Eventos.AddAsync(evento, cancellationToken);
     }
 
+    public Task RemoverAsync(Evento evento, CancellationToken cancellationToken)
+    {
+        dbContext.Eventos.Remove(evento);
+        return Task.CompletedTask;
+    }
+
     public async Task<Evento?> ObterPorIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await dbContext.Eventos.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
