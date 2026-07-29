@@ -1,10 +1,14 @@
+using MassTransit;
 using Pagamento.Application.Pagamentos.Interfaces;
-using TicketHub.MessageBus;
 using TicketHub.MessageBus.Eventos;
 
 namespace Pagamento.Infrastructure.Integracao;
 
-public class PagamentoEventoPublisher(IEventoPublisher eventoPublisher) : IPagamentoEventoPublisher
+/// <summary>
+/// Publica eventos de pagamento via MassTransit → RabbitMQ.
+/// IPublishEndpoint é injetado automaticamente pelo MassTransit (fanout para todos os consumers).
+/// </summary>
+public class PagamentoEventoPublisher(IPublishEndpoint publishEndpoint) : IPagamentoEventoPublisher
 {
     public Task PublicarStatusAlteradoAsync(
         Guid pagamentoId,
@@ -23,8 +27,6 @@ public class PagamentoEventoPublisher(IEventoPublisher eventoPublisher) : IPagam
             EmailCliente = emailCliente
         };
 
-        eventoPublisher.Publicar(evento, RabbitMqConstantes.RoutingKeys.PagamentoStatusAlterado);
-
-        return Task.CompletedTask;
+        return publishEndpoint.Publish(evento, cancellationToken);
     }
 }

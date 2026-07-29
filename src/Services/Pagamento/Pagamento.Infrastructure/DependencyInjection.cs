@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Pagamento.Application.Behaviors;
 using Pagamento.Application.Pagamentos.Interfaces;
-using Pagamento.Application.Pagamentos.Servicos;
 using Pagamento.Infrastructure.Integracao;
 using Pagamento.Infrastructure.Persistencia;
 using Pagamento.Infrastructure.Repositorios;
@@ -17,9 +17,11 @@ public static class DependencyInjection
     public static IServiceCollection AdicionarInfrastructurePagamento(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<PagamentosDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("PagamentoDb")));
+            options.UseSqlServer(configuration.GetConnectionString("PagamentoDb"),
+                sql => sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null)));
 
-        services.AdicionarRabbitMq(configuration);
+        // MassTransit — somente publisher, sem consumers neste serviço
+        services.AdicionarMassTransitRabbitMq(configuration);
 
         var servicosExternos = new ServicosExternosOptions();
         configuration.GetSection(ServicosExternosOptions.SectionName).Bind(servicosExternos);
@@ -35,7 +37,12 @@ public static class DependencyInjection
 
         services.AddScoped<IPagamentoRepositorio, PagamentoRepositorio>();
         services.AddScoped<IPagamentoEventoPublisher, PagamentoEventoPublisher>();
-        services.AddScoped<IPagamentoAppService, PagamentoAppService>();
+
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssemblyContaining<Pagamento.Application.Pagamentos.Queries.ListarPagamentosQuery>();
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+        });
 
         return services;
     }

@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+using MassTransit;
 using Notificacoes.Worker.Email;
 using Notificacoes.Worker.QrCode;
 using TicketHub.MessageBus;
@@ -6,20 +6,22 @@ using TicketHub.MessageBus.Eventos;
 
 namespace Notificacoes.Worker.Workers;
 
+/// <summary>
+/// Consome eventos PagamentoStatusAlteradoEvent via MassTransit/RabbitMQ
+/// e envia notificação por e-mail ao cliente.
+/// </summary>
 public class PagamentoStatusAlteradoConsumer(
-    IOptions<RabbitMqOptions> opcoes,
     ILogger<PagamentoStatusAlteradoConsumer> logger,
     IEmailSender emailSender)
-    : RabbitMqConsumerBackgroundService<PagamentoStatusAlteradoEvent>(
-        opcoes,
-        logger,
-        RabbitMqConstantes.Filas.NotificacoesPagamentoStatusAlterado,
-        RabbitMqConstantes.RoutingKeys.PagamentoStatusAlterado)
+    : IConsumer<PagamentoStatusAlteradoEvent>
 {
     private const string StatusAprovado = "Aprovado";
 
-    protected override async Task TratarAsync(PagamentoStatusAlteradoEvent evento, CancellationToken cancellationToken)
+    public async Task Consume(ConsumeContext<PagamentoStatusAlteradoEvent> context)
     {
+        var evento = context.Message;
+        var cancellationToken = context.CancellationToken;
+
         logger.LogInformation(
             "Notificando usuario: pagamento {PagamentoId} do ingresso {IngressoId} teve status alterado para {Status} (valor {Valor:C})",
             evento.PagamentoId,
@@ -103,5 +105,32 @@ public class PagamentoStatusAlteradoConsumer(
             </body>
             </html>
             """;
+    }
+}
+
+/// <summary>
+/// Define endpoint name e configurações de retry para PagamentoStatusAlteradoConsumer.
+/// MassTransit usa esta definição ao chamar ConfigureEndpoints().
+/// </summary>
+public class PagamentoStatusAlteradoConsumerDefinition
+    : ConsumerDefinition<PagamentoStatusAlteradoConsumer>
+{
+    public PagamentoStatusAlteradoConsumerDefinition()
+    {
+        // Nome da fila no RabbitMQ — mantém compatibilidade com a constante existente
+        EndpointName = RabbitMqConstantes.Filas.NotificacoesPagamentoStatusAlterado;
+    }
+
+    protected override void ConfigureConsumer(
+        IReceiveEndpointConfigurator endpointConfigurator,
+        IConsumerConfigurator<PagamentoStatusAlteradoConsumer> consumerConfigurator,
+        IRegistrationContext context)
+    {
+        // Retry exponencial por consumer (sobrescreve o retry global do bus)
+        endpointConfigurator.UseMessageRetry(r =>
+            r.Exponential(5,
+                TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(60),
+                TimeSpan.FromSeconds(5)));
     }
 }
