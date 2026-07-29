@@ -1,9 +1,11 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import type { CSSProperties } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useNotificacoes } from '../hooks/useNotificacoes'
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { usuario, isAdmin, logout } = useAuth()
+  useNotificacoes() // conecta ao SignalR enquanto o usuário estiver autenticado
   const navigate = useNavigate()
 
   function handleLogout() {
@@ -27,10 +29,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
           🎟 TicketHub
         </Link>
         <nav style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <Link to="/" style={navLink}>Eventos</Link>
-          <Link to="/meus-ingressos" style={navLink}>Meus Ingressos</Link>
-          {isAdmin && <Link to="/admin" style={navLink}>Admin</Link>}
-          <span style={{ color: '#aaa', fontSize: 14 }}>{usuario?.nome}</span>
+          <NavLink to="/" end style={navLinkStyle}>Eventos</NavLink>
+          <NavLink to="/meus-ingressos" style={navLinkStyle}>Meus Ingressos</NavLink>
+          <NavLink to="/extrato" style={navLinkStyle}>Extrato</NavLink>
+          {isAdmin && (
+            <>
+              <span style={{ color: '#444', fontSize: 14 }}>|</span>
+              <NavLink to="/admin/eventos" style={navLinkStyle}>Admin: Eventos</NavLink>
+              <NavLink to="/admin/ingressos" style={navLinkStyle}>Ingressos</NavLink>
+              <NavLink to="/admin/pagamentos" style={navLinkStyle}>Pagamentos</NavLink>
+              <NavLink to="/admin/usuarios" style={navLinkStyle}>Usuários</NavLink>
+            </>
+          )}
+          <NavLink to="/perfil" style={navLinkStyle}>{usuario?.nome}</NavLink>
           <button onClick={handleLogout} style={btnSmall}>Sair</button>
         </nav>
       </header>
@@ -41,11 +52,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
   )
 }
 
-const navLink: CSSProperties = {
-  color: '#ccc',
-  textDecoration: 'none',
-  fontSize: 14,
-  fontWeight: 500,
+function navLinkStyle({ isActive }: { isActive: boolean }): CSSProperties {
+  return {
+    color: isActive ? '#e94560' : '#ccc',
+    textDecoration: 'none',
+    fontSize: 14,
+    fontWeight: isActive ? 700 : 500,
+  }
 }
 
 const btnSmall: CSSProperties = {
