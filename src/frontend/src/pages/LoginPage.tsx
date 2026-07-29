@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 export function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const [nomeUsuario, setNomeUsuario] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,11 +16,11 @@ export function LoginPage() {
     setErro('')
     setLoading(true)
     try {
-      const res = await authApi.login({ email, senha })
+      const res = await authApi.login({ nomeUsuario, senha })
       login(res)
       navigate('/')
     } catch {
-      setErro('E-mail ou senha inválidos.')
+      setErro('Usuário ou senha inválidos.')
     } finally {
       setLoading(false)
     }
@@ -34,12 +34,13 @@ export function LoginPage() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <label style={labelStyle}>
-            E-mail
+            Usuário
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={nomeUsuario}
+              onChange={(e) => setNomeUsuario(e.target.value)}
               required
+              placeholder="ex: admin"
               style={inputStyle}
             />
           </label>

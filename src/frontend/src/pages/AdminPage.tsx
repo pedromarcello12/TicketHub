@@ -138,14 +138,28 @@ function CriarEventoForm() {
   const [erro, setErro] = useState('')
 
   const criar = useMutation({
-    mutationFn: eventosApi.criar,
+    mutationFn: (data: CriarEventoRequest) => {
+      // datetime-local envia "2026-07-26T15:30" sem segundos — normaliza para ISO 8601
+      const dataHoraISO = data.dataHora.length === 16 ? data.dataHora + ':00' : data.dataHora
+      return eventosApi.criar({ ...data, dataHora: dataHoraISO })
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['eventos'] })
       setSucesso('Evento criado com sucesso!')
       setErro('')
       setForm({ nome: '', local: '', dataHora: '', capacidadeTotal: 100 })
     },
-    onError: () => setErro('Erro ao criar evento.'),
+    onError: (err: unknown) => {
+      console.error('[CriarEvento] erro:', err)
+      const axiosErr = err as {
+        message?: string
+        response?: { status?: number; data?: { mensagem?: string; title?: string; errors?: unknown } }
+      }
+      const detalhe = axiosErr?.response?.data?.mensagem
+        ?? axiosErr?.response?.data?.title
+        ?? (axiosErr?.response?.status ? `HTTP ${axiosErr.response.status}` : axiosErr?.message ?? 'sem resposta do servidor')
+      setErro(`Erro ao criar evento: ${detalhe}`)
+    },
   })
 
   function handleSubmit(e: FormEvent) {
@@ -241,8 +255,12 @@ function AdicionarIngressosForm() {
         await criar.mutateAsync({ eventoId, tipoIngresso, preco })
       }
       setSucesso(`${quantidade} ingressos criados com sucesso!`)
-    } catch {
-      setErro('Erro ao criar ingressos.')
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { status?: number; data?: { mensagem?: string; title?: string } } }
+      const detalhe = axiosErr?.response?.data?.mensagem
+        ?? axiosErr?.response?.data?.title
+        ?? `HTTP ${axiosErr?.response?.status ?? '?'}`
+      setErro(`Erro ao criar ingressos: ${detalhe}`)
     }
   }
 

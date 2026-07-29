@@ -1,14 +1,15 @@
 // ── Auth ──────────────────────────────────────────────────────────
 
 export interface LoginRequest {
-  email: string
+  nomeUsuario: string
   senha: string
 }
 
 export interface RegistrarRequest {
+  nomeUsuario: string
   nome: string
-  email: string
   senha: string
+  papel: string
 }
 
 export interface LoginResponse {
@@ -16,7 +17,7 @@ export interface LoginResponse {
   refreshToken: string
   nome: string
   papel: string
-  email: string
+  email: string       // NomeUsuario do usuário (usado como identificador)
   expiraEm: string
 }
 
@@ -38,6 +39,13 @@ export interface CriarEventoRequest {
   capacidadeTotal: number
 }
 
+export interface AtualizarEventoRequest {
+  nome: string
+  local: string
+  dataHora: string
+  capacidadeTotal: number
+}
+
 // ── Ingressos ─────────────────────────────────────────────────────
 
 export interface IngressoResponse {
@@ -53,6 +61,34 @@ export interface CriarIngressoRequest {
   eventoId: string
   tipoIngresso: string
   preco: number
+}
+
+export interface AtualizarIngressoRequest {
+  tipoIngresso: string
+  preco: number
+}
+
+export interface UsuarioAdminResponse {
+  id: string
+  nomeUsuario: string
+  nome: string
+  papel: string
+}
+
+// ── Perfil ────────────────────────────────────────────────────────
+
+export interface PerfilResponse {
+  id: string
+  nomeUsuario: string
+  nome: string
+  papel: string
+  email: string
+}
+
+export interface AtualizarPerfilRequest {
+  nome?: string
+  senhaAtual?: string
+  novaSenha?: string
 }
 
 // ── Pagamento ─────────────────────────────────────────────────────

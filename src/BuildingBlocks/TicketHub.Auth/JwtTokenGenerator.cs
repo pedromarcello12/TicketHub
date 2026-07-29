@@ -8,7 +8,7 @@ namespace TicketHub.Auth;
 
 public class JwtTokenGenerator(IOptions<JwtOptions> opcoes) : IJwtTokenGenerator
 {
-    public string GerarToken(string usuarioId, string nome, string papel)
+    public string GerarToken(string usuarioId, string nomeUsuario, string nome, string papel)
     {
         var configuracao = opcoes.Value;
         var chave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuracao.SecretKey));
@@ -18,6 +18,7 @@ public class JwtTokenGenerator(IOptions<JwtOptions> opcoes) : IJwtTokenGenerator
         {
             new Claim(JwtRegisteredClaimNames.Sub, usuarioId),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("nomeUsuario", nomeUsuario),
             new Claim(ClaimTypes.Name, nome),
             new Claim(ClaimTypes.Role, papel)
         };

@@ -53,7 +53,7 @@ function ReservarModal({ eventoId, onClose }: ReservarModalProps) {
         ingressoId: ingressoSelecionado!.id,
         valor: ingressoSelecionado!.preco,
         metodo,
-        emailCliente: usuario!.email,
+        emailCliente: usuario!.nomeUsuario,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ingressos', eventoId] })

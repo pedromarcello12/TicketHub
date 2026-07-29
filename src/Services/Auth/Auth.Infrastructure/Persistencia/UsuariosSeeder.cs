@@ -13,22 +13,24 @@ public static class UsuariosSeeder
         ServicoInternoOptions servicoInterno,
         CancellationToken cancellationToken)
     {
-        if (await dbContext.Usuarios.AnyAsync(cancellationToken))
-            return;
-
         if (string.IsNullOrWhiteSpace(servicoInterno.Senha))
             throw new InvalidOperationException(
-                "ServicoInterno:Senha nao foi configurada. Defina a variavel de ambiente ServicoInterno__Senha (ou user-secrets em desenvolvimento) antes de iniciar o Auth.Api.");
+                "ServicoInterno:Senha nao foi configurada. Defina a variavel de ambiente ServicoInterno__Senha antes de iniciar o Auth.Api.");
 
-        var admin = new Usuario("admin", passwordHasher.Hash("admin123"), "Administrador TicketHub", Papeis.Administrador);
-        var cliente = new Usuario("cliente", passwordHasher.Hash("cliente123"), "Cliente TicketHub", Papeis.Cliente);
+        // Garante que o usuário de serviço interno sempre exista (necessário para comunicação entre serviços)
+        var jaExiste = await dbContext.Usuarios
+            .AnyAsync(u => u.NomeUsuario == servicoInterno.NomeUsuario, cancellationToken);
+
+        if (jaExiste)
+            return;
+
         var servico = new Usuario(
             servicoInterno.NomeUsuario,
             passwordHasher.Hash(servicoInterno.Senha),
-            "Servico Interno TicketHub",
+            "Servico Interno",
             Papeis.Servico);
 
-        await dbContext.Usuarios.AddRangeAsync([admin, cliente, servico], cancellationToken);
+        await dbContext.Usuarios.AddAsync(servico, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

@@ -31,6 +31,14 @@ public class Usuario : EntidadeBase
         Papel = papel;
     }
 
+    public void AtualizarNome(string novoNome)
+    {
+        if (string.IsNullOrWhiteSpace(novoNome))
+            throw new ArgumentException("O nome é obrigatório.", nameof(novoNome));
+
+        Nome = novoNome;
+    }
+
     public void AtualizarSenhaHash(string novaSenhaHash)
     {
         if (string.IsNullOrWhiteSpace(novaSenhaHash))
