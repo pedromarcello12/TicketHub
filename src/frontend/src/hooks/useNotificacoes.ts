@@ -47,7 +47,7 @@ export function useNotificacoes() {
 
     connection
       .start()
-      .catch(err => console.error('[SignalR] Erro ao conectar:', err))
+      .catch((err: unknown) => console.error('[SignalR] Erro ao conectar:', err))
 
     connectionRef.current = connection
 
@@ -73,11 +73,12 @@ function mostrarToast(payload: PagamentoStatusAlteradoPayload) {
   toast.setAttribute('role', 'status')
   toast.style.cssText = `
     position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-    background: #1e293b; color: #f8fafc;
-    padding: 14px 20px; border-radius: 10px;
-    font-family: system-ui, sans-serif; font-size: 14px;
-    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    background: #232532; color: #e9e9ed;
+    padding: 14px 20px; border-radius: 14px;
+    font-family: "Inter", system-ui, sans-serif; font-size: 14px;
+    box-shadow: 0 0 0 1px #9397ab, 0 16px 40px rgba(0,0,0,0.65);
     max-width: 320px; line-height: 1.5;
+    border-left: 3px solid #9184d9;
     animation: slideIn .25s ease;
   `
   toast.innerHTML = `

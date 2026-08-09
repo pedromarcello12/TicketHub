@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { eventosApi } from '../api/eventos'
@@ -8,28 +8,27 @@ import { useAuth } from '../contexts/AuthContext'
 import { Layout } from '../components/Layout'
 import type { IngressoResponse } from '../types'
 
-// ─── Status badge colors ──────────────────────────────────────────
+// ─── Status tags ──────────────────────────────────────────────────
 
-const statusColor: Record<string, string> = {
-  Rascunho: '#6b7280',
-  Publicado: '#16a34a',
-  Cancelado: '#dc2626',
-  Encerrado: '#92400e',
+function StatusTag({ status }: { status: string }) {
+  const cls: Record<string, string> = {
+    Rascunho: 'tag tag-neutral',
+    Planejado: 'tag tag-neutral',
+    Publicado: 'tag tag-success',
+    Cancelado: 'tag tag-danger',
+    Encerrado: 'tag tag-warning',
+  }
+  return <span className={cls[status] ?? 'tag tag-neutral'}>{status}</span>
 }
 
 // ─── Reserva / Pagamento modal ────────────────────────────────────
 
-interface ReservarModalProps {
-  eventoId: string
-  onClose: () => void
-}
-
-function ReservarModal({ eventoId, onClose }: ReservarModalProps) {
+function ReservarModal({ eventoId, onClose }: { eventoId: string; onClose: () => void }) {
   const qc = useQueryClient()
   const { usuario } = useAuth()
   const [etapa, setEtapa] = useState<'lista' | 'pagamento'>('lista')
   const [ingressoSelecionado, setIngressoSelecionado] = useState<IngressoResponse | null>(null)
-  const [metodo, setMetodo] = useState<number>(2) // Pix default
+  const [metodo, setMetodo] = useState<number>(2)
   const [erro, setErro] = useState('')
 
   const { data: ingressos = [], isLoading } = useQuery({
@@ -65,79 +64,84 @@ function ReservarModal({ eventoId, onClose }: ReservarModalProps) {
   const disponiveis = ingressos.filter((i) => i.status === 'Disponivel')
 
   return (
-    <div style={overlay} onClick={onClose}>
-      <div style={modalBox} onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} style={closeBtn}>✕</button>
+    <div className="dialog-backdrop" onClick={onClose}>
+      <div className="dialog" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={onClose}
+          className="btn btn-icon btn-secondary"
+          style={{ position: 'absolute', top: 16, right: 16 }}
+        >
+          <i className="ph ph-x" />
+        </button>
 
         {etapa === 'lista' && (
           <>
-            <h2 style={{ margin: '0 0 16px', fontSize: 18 }}>Escolha um ingresso</h2>
-            {isLoading && <p style={{ color: '#888' }}>Carregando…</p>}
+            <div className="dialog-title">Escolha um ingresso</div>
+            {isLoading && <p className="text-muted">Carregando…</p>}
             {!isLoading && disponiveis.length === 0 && (
-              <p style={{ color: '#888' }}>Nenhum ingresso disponível para este evento.</p>
+              <p className="text-muted">Nenhum ingresso disponível para este evento.</p>
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
               {disponiveis.map((i) => (
-                <div key={i.id} style={ingressoCard}>
+                <div key={i.id} className="card elev-sm" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
-                    <strong>{i.tipoIngresso}</strong>
-                    <div style={{ color: '#666', fontSize: 13 }}>
-                      R$ {i.preco.toFixed(2).replace('.', ',')}
-                    </div>
+                    <div className="card-title" style={{ fontSize: 15 }}>{i.tipoIngresso}</div>
+                    <div className="card-meta">R$ {i.preco.toFixed(2).replace('.', ',')}</div>
                   </div>
                   <button
+                    className="btn btn-primary"
                     onClick={() => reservar.mutate(i.id)}
                     disabled={reservar.isPending}
-                    style={btnPrimary}
                   >
                     Reservar
                   </button>
                 </div>
               ))}
             </div>
+            {erro && <p style={{ color: 'var(--color-danger)', fontSize: 13, margin: 0 }}>{erro}</p>}
           </>
         )}
 
         {etapa === 'pagamento' && ingressoSelecionado && (
           <>
-            <h2 style={{ margin: '0 0 4px', fontSize: 18 }}>Pagamento</h2>
-            <p style={{ color: '#555', fontSize: 13, margin: '0 0 20px' }}>
-              {ingressoSelecionado.tipoIngresso} · R${' '}
-              {ingressoSelecionado.preco.toFixed(2).replace('.', ',')}
-            </p>
+            <div className="dialog-title">Pagamento</div>
+            <div className="card-kicker">
+              {ingressoSelecionado.tipoIngresso} · R$ {ingressoSelecionado.preco.toFixed(2).replace('.', ',')}
+            </div>
 
-            <label style={labelStyle}>
-              Método de pagamento
-              <select
-                value={metodo}
-                onChange={(e) => setMetodo(Number(e.target.value))}
-                style={inputStyle}
-              >
-                <option value={2}>Pix</option>
-                <option value={1}>Cartão de Crédito</option>
-                <option value={3}>Boleto</option>
-              </select>
-            </label>
+            <div className="field">
+              <label>Método de pagamento</label>
+              <div className="seg">
+                <label className="seg-opt">
+                  <input type="radio" name="pay" checked={metodo === 1} onChange={() => setMetodo(1)} />
+                  <i className="ph ph-credit-card" /> Cartão
+                </label>
+                <label className="seg-opt">
+                  <input type="radio" name="pay" checked={metodo === 2} onChange={() => setMetodo(2)} />
+                  <i className="ph ph-qr-code" /> Pix
+                </label>
+                <label className="seg-opt">
+                  <input type="radio" name="pay" checked={metodo === 3} onChange={() => setMetodo(3)} />
+                  <i className="ph ph-barcode" /> Boleto
+                </label>
+              </div>
+            </div>
 
-            {erro && <p style={{ color: '#e94560', fontSize: 13 }}>{erro}</p>}
+            {erro && <p style={{ color: 'var(--color-danger)', fontSize: 13, margin: 0 }}>{erro}</p>}
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-              <button onClick={() => setEtapa('lista')} style={btnSecondary}>
-                Voltar
+            <div className="dialog-actions">
+              <button className="btn btn-secondary" onClick={() => setEtapa('lista')}>
+                <i className="ph ph-arrow-left" /> Voltar
               </button>
               <button
+                className="btn btn-primary"
                 onClick={() => pagar.mutate()}
                 disabled={pagar.isPending}
-                style={{ ...btnPrimary, flex: 1 }}
               >
                 {pagar.isPending ? 'Processando…' : 'Confirmar pagamento'}
               </button>
             </div>
           </>
-        )}
-
-        {erro && etapa === 'lista' && (
-          <p style={{ color: '#e94560', fontSize: 13, marginTop: 8 }}>{erro}</p>
         )}
       </div>
     </div>
@@ -161,12 +165,10 @@ export function EventosPage() {
     mutationFn: eventosApi.publicar,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['eventos'] }),
   })
-
   const cancelar = useMutation({
     mutationFn: eventosApi.cancelar,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['eventos'] }),
   })
-
   const encerrar = useMutation({
     mutationFn: eventosApi.encerrar,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['eventos'] }),
@@ -174,64 +176,64 @@ export function EventosPage() {
 
   return (
     <Layout>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
-        <h1 style={{ margin: 0, fontSize: 24, color: '#1a1a2e' }}>Eventos</h1>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
+        <div>
+          <h1 style={{ margin: '0 0 var(--space-1)' }}>Viva a música.</h1>
+          <p className="text-muted" style={{ margin: 0, fontSize: 15 }}>
+            Shows, festivais e stand-up perto de você. Compra rápida, ingresso na hora.
+          </p>
+        </div>
         {isAdmin && (
-          <button onClick={() => navigate('/admin/criar-evento')} style={btnPrimary}>
-            + Novo evento
+          <button className="btn btn-primary" onClick={() => navigate('/admin/eventos/novo')}>
+            <i className="ph ph-plus" /> Novo evento
           </button>
         )}
       </div>
 
-      {isLoading && <p style={{ color: '#888' }}>Carregando eventos…</p>}
-      {isError && <p style={{ color: '#e94560' }}>Erro ao carregar eventos.</p>}
+      {isLoading && <p className="text-muted">Carregando eventos…</p>}
+      {isError && <p style={{ color: 'var(--color-danger)' }}>Erro ao carregar eventos.</p>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-6)' }}>
         {eventos.map((evento) => (
-          <div key={evento.id} style={eventoCard}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-              <h2 style={{ margin: 0, fontSize: 17, color: '#1a1a2e' }}>{evento.nome}</h2>
-              <span style={{
-                background: statusColor[evento.status] ?? '#6b7280',
-                color: '#fff',
-                padding: '2px 10px',
-                borderRadius: 20,
-                fontSize: 11,
-                fontWeight: 600,
-                whiteSpace: 'nowrap',
-                marginLeft: 8,
-              }}>
-                {evento.status}
-              </span>
+          <div key={evento.id} className="card elev-sm" style={{ gap: 'var(--space-3)' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div className="card-kicker">{evento.local}</div>
+              <StatusTag status={evento.status} />
             </div>
 
-            <p style={{ margin: '4px 0', color: '#555', fontSize: 13 }}>📍 {evento.local}</p>
-            <p style={{ margin: '4px 0 16px', color: '#555', fontSize: 13 }}>
-              🗓 {new Date(evento.dataHora).toLocaleString('pt-BR')}
-            </p>
-            <p style={{ margin: '0 0 16px', color: '#888', fontSize: 12 }}>
-              Capacidade: {evento.capacidadeTotal} pessoas
-            </p>
+            <div className="card-title">{evento.nome}</div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <div className="card-meta">
+              <i className="ph ph-calendar-blank" />
+              {new Date(evento.dataHora).toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </div>
+
+            <div className="card-meta">
+              <i className="ph ph-users" />
+              Capacidade: {evento.capacidadeTotal} pessoas
+            </div>
+
+            <div className="hr" style={{ margin: '4px 0' }} />
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
               {evento.status === 'Publicado' && (
-                <button onClick={() => setModalEventoId(evento.id)} style={btnPrimary}>
-                  Comprar ingresso
+                <button className="btn btn-primary" onClick={() => setModalEventoId(evento.id)}>
+                  <i className="ph ph-ticket" /> Comprar ingresso
                 </button>
               )}
-
               {isAdmin && evento.status === 'Rascunho' && (
-                <button onClick={() => publicar.mutate(evento.id)} style={btnSecondary}>
+                <button className="btn btn-secondary" onClick={() => publicar.mutate(evento.id)}>
                   Publicar
                 </button>
               )}
               {isAdmin && (evento.status === 'Rascunho' || evento.status === 'Publicado') && (
-                <button onClick={() => cancelar.mutate(evento.id)} style={btnDanger}>
+                <button className="btn btn-danger" onClick={() => cancelar.mutate(evento.id)}>
                   Cancelar
                 </button>
               )}
               {isAdmin && evento.status === 'Publicado' && (
-                <button onClick={() => encerrar.mutate(evento.id)} style={btnSecondary}>
+                <button className="btn btn-secondary" onClick={() => encerrar.mutate(evento.id)}>
                   Encerrar
                 </button>
               )}
@@ -247,102 +249,6 @@ export function EventosPage() {
   )
 }
 
-// ─── Styles ───────────────────────────────────────────────────────
-
-const eventoCard: CSSProperties = {
-  background: '#fff',
-  borderRadius: 10,
-  padding: 20,
-  boxShadow: '0 2px 8px rgba(0,0,0,.08)',
-  border: '1px solid #e5e7eb',
-}
-
-const ingressoCard: CSSProperties = {
-  background: '#f9fafb',
-  border: '1px solid #e5e7eb',
-  borderRadius: 8,
-  padding: '12px 16px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-}
-
-export const btnPrimary: CSSProperties = {
-  background: '#e94560',
-  color: '#fff',
-  border: 'none',
-  padding: '8px 16px',
-  borderRadius: 6,
-  fontSize: 13,
-  fontWeight: 600,
-  cursor: 'pointer',
-}
-
-export const btnSecondary: CSSProperties = {
-  background: '#fff',
-  color: '#1a1a2e',
-  border: '1px solid #d1d5db',
-  padding: '8px 16px',
-  borderRadius: 6,
-  fontSize: 13,
-  cursor: 'pointer',
-}
-
-const btnDanger: CSSProperties = {
-  background: '#fff',
-  color: '#dc2626',
-  border: '1px solid #dc2626',
-  padding: '8px 16px',
-  borderRadius: 6,
-  fontSize: 13,
-  cursor: 'pointer',
-}
-
-const overlay: CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background: 'rgba(0,0,0,.5)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 100,
-}
-
-const modalBox: CSSProperties = {
-  background: '#fff',
-  borderRadius: 12,
-  padding: '32px 28px',
-  width: '100%',
-  maxWidth: 440,
-  position: 'relative',
-  maxHeight: '90vh',
-  overflowY: 'auto',
-}
-
-const closeBtn: CSSProperties = {
-  position: 'absolute',
-  top: 16,
-  right: 16,
-  background: 'transparent',
-  border: 'none',
-  fontSize: 18,
-  cursor: 'pointer',
-  color: '#888',
-}
-
-const labelStyle: CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 6,
-  fontSize: 14,
-  color: '#333',
-  fontWeight: 500,
-}
-
-const inputStyle: CSSProperties = {
-  border: '1px solid #d1d5db',
-  borderRadius: 6,
-  padding: '9px 12px',
-  fontSize: 14,
-  background: '#fff',
-}
+export { StatusTag }
+export const btnPrimary = 'btn btn-primary'
+export const btnSecondary = 'btn btn-secondary'

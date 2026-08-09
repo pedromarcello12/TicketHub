@@ -1,11 +1,10 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom'
-import type { CSSProperties } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useNotificacoes } from '../hooks/useNotificacoes'
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { usuario, isAdmin, logout } = useAuth()
-  useNotificacoes() // conecta ao SignalR enquanto o usuário estiver autenticado
+  useNotificacoes()
   const navigate = useNavigate()
 
   function handleLogout() {
@@ -14,59 +13,62 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f5f5', fontFamily: 'system-ui, sans-serif' }}>
-      <header style={{
-        background: '#1a1a2e',
-        color: '#fff',
-        padding: '0 24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        height: 56,
-        boxShadow: '0 2px 8px rgba(0,0,0,.3)',
-      }}>
-        <Link to="/" style={{ color: '#e94560', fontWeight: 700, fontSize: 20, textDecoration: 'none' }}>
-          🎟 TicketHub
-        </Link>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <NavLink to="/" end style={navLinkStyle}>Eventos</NavLink>
-          <NavLink to="/meus-ingressos" style={navLinkStyle}>Meus Ingressos</NavLink>
-          <NavLink to="/extrato" style={navLinkStyle}>Extrato</NavLink>
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg)' }}>
+      <header className="nav">
+        <NavLink to="/" className="nav-brand">
+          <i className="ph-fill ph-ticket" style={{ fontSize: 20, color: 'var(--color-accent)' }} />
+          TicketHub
+        </NavLink>
+
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+          <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''} style={navLink}>
+            Eventos
+          </NavLink>
+          <NavLink to="/meus-ingressos" className={({ isActive }) => isActive ? 'active' : ''} style={navLink}>
+            Meus ingressos
+          </NavLink>
+          <NavLink to="/extrato" className={({ isActive }) => isActive ? 'active' : ''} style={navLink}>
+            Extrato
+          </NavLink>
+
           {isAdmin && (
             <>
-              <span style={{ color: '#444', fontSize: 14 }}>|</span>
-              <NavLink to="/admin/eventos" style={navLinkStyle}>Admin: Eventos</NavLink>
-              <NavLink to="/admin/ingressos" style={navLinkStyle}>Ingressos</NavLink>
-              <NavLink to="/admin/pagamentos" style={navLinkStyle}>Pagamentos</NavLink>
-              <NavLink to="/admin/usuarios" style={navLinkStyle}>Usuários</NavLink>
+              <span style={{ width: 1, height: 16, background: 'var(--color-divider)', margin: '0 4px' }} />
+              <NavLink to="/admin/eventos" className={({ isActive }) => isActive ? 'active' : ''} style={navLink}>
+                Eventos
+              </NavLink>
+              <NavLink to="/admin/ingressos" className={({ isActive }) => isActive ? 'active' : ''} style={navLink}>
+                Ingressos
+              </NavLink>
+              <NavLink to="/admin/pagamentos" className={({ isActive }) => isActive ? 'active' : ''} style={navLink}>
+                Pagamentos
+              </NavLink>
+              <NavLink to="/admin/usuarios" className={({ isActive }) => isActive ? 'active' : ''} style={navLink}>
+                Usuários
+              </NavLink>
             </>
           )}
-          <NavLink to="/perfil" style={navLinkStyle}>{usuario?.nome}</NavLink>
-          <button onClick={handleLogout} style={btnSmall}>Sair</button>
         </nav>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <NavLink to="/perfil" style={{ ...navLink, textDecoration: 'none' }}>
+            <button className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <i className="ph ph-user" style={{ fontSize: 15 }} />
+              {usuario?.nome}
+            </button>
+          </NavLink>
+          <button className="btn btn-ghost" onClick={handleLogout}>
+            <i className="ph ph-sign-out" style={{ fontSize: 15 }} />
+            Sair
+          </button>
+        </div>
       </header>
-      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
+
+      <main style={{ maxWidth: 1120, margin: '0 auto', padding: '32px var(--space-6) 64px' }}>
         {children}
       </main>
     </div>
   )
 }
 
-function navLinkStyle({ isActive }: { isActive: boolean }): CSSProperties {
-  return {
-    color: isActive ? '#e94560' : '#ccc',
-    textDecoration: 'none',
-    fontSize: 14,
-    fontWeight: isActive ? 700 : 500,
-  }
-}
-
-const btnSmall: CSSProperties = {
-  background: 'transparent',
-  border: '1px solid #e94560',
-  color: '#e94560',
-  padding: '4px 12px',
-  borderRadius: 4,
-  cursor: 'pointer',
-  fontSize: 13,
-}
+const navLink = { color: 'inherit', textDecoration: 'none', fontSize: 14 }
