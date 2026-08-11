@@ -1,5 +1,5 @@
 import api from './client'
-import type { CriarIngressoRequest, IngressoResponse } from '../types'
+import type { CriarIngressoRequest, AtualizarIngressoRequest, IngressoResponse } from '../types'
 
 export const ingressosApi = {
   listar: (eventoId?: string) =>
@@ -12,6 +12,12 @@ export const ingressosApi = {
 
   criar: (data: CriarIngressoRequest) =>
     api.post<IngressoResponse>('/api/ingressos', data).then((r) => r.data),
+
+  atualizar: (id: string, data: AtualizarIngressoRequest) =>
+    api.put<IngressoResponse>(`/api/ingressos/${id}`, data).then((r) => r.data),
+
+  excluir: (id: string) =>
+    api.delete(`/api/ingressos/${id}`),
 
   reservar: (id: string) =>
     api.post<IngressoResponse>(`/api/ingressos/${id}/reservar`).then((r) => r.data),

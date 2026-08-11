@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { usuariosApi } from '../../api/usuarios'
 import { useAuth } from '../../contexts/AuthContext'
 import { Layout } from '../../components/Layout'
-import * as ui from '../../components/ui'
 
-const PAPEL_COLOR: Record<string, string> = {
-  Administrador: '#7c3aed',
-  Cliente: '#3b82f6',
-  Servico: '#6b7280',
+const papelTagCls: Record<string, string> = {
+  Administrador: 'tag tag-accent',
+  Cliente: 'tag tag-accent-2',
+  Servico: 'tag tag-neutral',
 }
 
 export function UsuariosAdminPage() {
@@ -26,61 +25,40 @@ export function UsuariosAdminPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-usuarios'] }),
   })
 
-  function confirmarExcluir(id: string, nome: string) {
-    if (confirm(`Excluir usuário "${nome}"?`)) excluir.mutate(id)
-  }
-
   return (
     <Layout>
-      <div style={ui.pageHeader}>
-        <h1 style={ui.h1}>Usuários</h1>
-        <button style={ui.btnPrimary} onClick={() => navigate('/registrar')}>
-          + Novo usuário
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
+        <h1 style={{ margin: 0 }}>Usuários</h1>
+        <button className="btn btn-primary" onClick={() => navigate('/registrar')}>
+          <i className="ph ph-plus" /> Novo usuário
         </button>
       </div>
 
-      <div style={ui.card}>
-        {isLoading && <p style={{ color: '#888' }}>Carregando…</p>}
-        {!isLoading && usuarios.length === 0 && (
-          <p style={{ color: '#888' }}>Nenhum usuário cadastrado.</p>
-        )}
+      <div className="card elev-sm" style={{ padding: 0, overflow: 'hidden' }}>
+        {isLoading && <p className="text-muted" style={{ padding: 'var(--space-4)' }}>Carregando…</p>}
+        {!isLoading && usuarios.length === 0 && <p className="text-muted" style={{ padding: 'var(--space-4)' }}>Nenhum usuário cadastrado.</p>}
 
         {usuarios.length > 0 && (
           <div style={{ overflowX: 'auto' }}>
-            <table style={ui.table}>
+            <table className="table">
               <thead>
-                <tr>
-                  <th style={ui.th}>Nome</th>
-                  <th style={ui.th}>Usuário</th>
-                  <th style={ui.th}>Perfil</th>
-                  <th style={ui.th}>Ações</th>
-                </tr>
+                <tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Ações</th></tr>
               </thead>
               <tbody>
                 {usuarios.map((u) => (
                   <tr key={u.id}>
-                    <td style={ui.td}>{u.nome}</td>
-                    <td style={ui.td}>{u.nomeUsuario}</td>
-                    <td style={ui.td}>
-                      <span style={{
-                        background: PAPEL_COLOR[u.papel] ?? '#6b7280',
-                        color: '#fff',
-                        padding: '2px 10px',
-                        borderRadius: 20,
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}>
-                        {u.papel}
-                      </span>
-                    </td>
-                    <td style={ui.td}>
+                    <td style={{ fontWeight: 500 }}>{u.nome}</td>
+                    <td className="text-muted">{u.nomeUsuario}</td>
+                    <td><span className={papelTagCls[u.papel] ?? 'tag tag-neutral'}>{u.papel}</span></td>
+                    <td>
                       {u.nomeUsuario !== usuario?.nomeUsuario && u.papel !== 'Servico' && (
                         <button
-                          style={ui.btnDanger}
-                          onClick={() => confirmarExcluir(u.id, u.nome)}
+                          className="btn btn-danger"
+                          style={{ fontSize: 12, padding: '4px 10px' }}
+                          onClick={() => { if (confirm(`Excluir "${u.nome}"?`)) excluir.mutate(u.id) }}
                           disabled={excluir.isPending}
                         >
-                          Excluir
+                          <i className="ph ph-trash" /> Excluir
                         </button>
                       )}
                     </td>

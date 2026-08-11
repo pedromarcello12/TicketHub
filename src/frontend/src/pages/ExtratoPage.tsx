@@ -1,13 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { pagamentoApi } from '../api/pagamento'
 import { Layout } from '../components/Layout'
-import * as ui from '../components/ui'
 
-const STATUS_COLOR: Record<string, string> = {
-  Pendente: '#f59e0b',
-  Aprovado: '#16a34a',
-  Recusado: '#dc2626',
-  Estornado: '#6b7280',
+const pagTagCls: Record<string, string> = {
+  Pendente: 'tag tag-warning',
+  Aprovado: 'tag tag-success',
+  Recusado: 'tag tag-danger',
+  Estornado: 'tag tag-neutral',
 }
 
 const METODO_LABEL: Record<string, string> = {
@@ -29,67 +28,70 @@ export function ExtratoPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['meus-pagamentos'] }),
   })
 
+  const total = pagamentos.filter((p) => p.status === 'Aprovado').reduce((sum, p) => sum + p.valor, 0)
+
   function confirmarReembolso(id: string) {
     if (confirm('Solicitar reembolso deste pagamento?')) reembolso.mutate(id)
   }
 
-  const total = pagamentos
-    .filter((p) => p.status === 'Aprovado')
-    .reduce((sum, p) => sum + p.valor, 0)
-
   return (
     <Layout>
-      <div style={ui.pageHeader}>
-        <h1 style={ui.h1}>Extrato de Pagamentos</h1>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
+        <h1 style={{ margin: 0 }}>Extrato</h1>
         {pagamentos.length > 0 && (
-          <div style={{ fontSize: 14, color: '#555' }}>
-            Total aprovado:{' '}
-            <strong style={{ color: '#16a34a' }}>
+          <div style={{ fontSize: 14 }}>
+            <span className="text-muted">Total aprovado: </span>
+            <strong style={{ color: 'var(--color-success)' }}>
               R$ {total.toFixed(2).replace('.', ',')}
             </strong>
           </div>
         )}
       </div>
 
-      <div style={ui.card}>
-        {isLoading && <p style={{ color: '#888' }}>Carregando…</p>}
+      <div className="card elev-sm" style={{ padding: 0, overflow: 'hidden' }}>
+        {isLoading && <p className="text-muted" style={{ padding: 'var(--space-4)' }}>Carregando…</p>}
         {!isLoading && pagamentos.length === 0 && (
-          <p style={{ color: '#888' }}>Nenhum pagamento registrado.</p>
+          <div style={{ padding: 'var(--space-6)', textAlign: 'center' }}>
+            <i className="ph ph-receipt" style={{ fontSize: 32, color: 'var(--color-accent)', marginBottom: 8, display: 'block' }} />
+            <p className="text-muted" style={{ margin: 0 }}>Nenhum pagamento registrado.</p>
+          </div>
         )}
 
         {pagamentos.length > 0 && (
           <div style={{ overflowX: 'auto' }}>
-            <table style={ui.table}>
+            <table className="table">
               <thead>
                 <tr>
-                  <th style={ui.th}>Método</th>
-                  <th style={ui.th}>Valor</th>
-                  <th style={ui.th}>Status</th>
-                  <th style={ui.th}>Ações</th>
+                  <th>Método</th>
+                  <th>Valor</th>
+                  <th>Status</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {pagamentos.map((p) => (
                   <tr key={p.id}>
-                    <td style={ui.td}>{METODO_LABEL[p.metodo] ?? p.metodo}</td>
-                    <td style={ui.td}>R$ {p.valor.toFixed(2).replace('.', ',')}</td>
-                    <td style={ui.td}>
-                      <span style={{
-                        color: STATUS_COLOR[p.status] ?? '#333',
-                        fontWeight: 600,
-                        fontSize: 13,
-                      }}>
-                        {p.status}
-                      </span>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <i className={p.metodo === 'Pix' ? 'ph ph-qr-code' : p.metodo === 'Boleto' ? 'ph ph-barcode' : 'ph ph-credit-card'} />
+                        {METODO_LABEL[p.metodo] ?? p.metodo}
+                      </div>
                     </td>
-                    <td style={ui.td}>
+                    <td style={{ fontFamily: 'var(--font-heading)' }}>
+                      R$ {p.valor.toFixed(2).replace('.', ',')}
+                    </td>
+                    <td>
+                      <span className={pagTagCls[p.status] ?? 'tag tag-neutral'}>{p.status}</span>
+                    </td>
+                    <td>
                       {p.status === 'Aprovado' && (
                         <button
-                          style={{ ...ui.btnSmall, color: '#92400e', borderColor: '#f59e0b' }}
+                          className="btn btn-danger"
+                          style={{ fontSize: 12, padding: '3px 10px' }}
                           onClick={() => confirmarReembolso(p.id)}
                           disabled={reembolso.isPending}
                         >
-                          Solicitar reembolso
+                          Reembolso
                         </button>
                       )}
                     </td>

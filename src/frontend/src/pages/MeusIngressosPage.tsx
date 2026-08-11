@@ -1,21 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { CSSProperties } from 'react'
 import { ingressosApi } from '../api/ingressos'
 import { pagamentoApi } from '../api/pagamento'
 import { Layout } from '../components/Layout'
 
-const statusColor: Record<string, { bg: string; color: string }> = {
-  Disponivel: { bg: '#dcfce7', color: '#16a34a' },
-  Reservado: { bg: '#fef9c3', color: '#92400e' },
-  Vendido: { bg: '#dbeafe', color: '#1d4ed8' },
-  Cancelado: { bg: '#fee2e2', color: '#dc2626' },
+const ingressoTagCls: Record<string, string> = {
+  Disponivel: 'tag tag-neutral',
+  Reservado: 'tag tag-warning',
+  Vendido: 'tag tag-accent',
+  Cancelado: 'tag tag-danger',
 }
 
-const pagStatusColor: Record<string, { bg: string; color: string }> = {
-  Pendente: { bg: '#fef9c3', color: '#92400e' },
-  Aprovado: { bg: '#dcfce7', color: '#16a34a' },
-  Recusado: { bg: '#fee2e2', color: '#dc2626' },
-  Estornado: { bg: '#f3f4f6', color: '#6b7280' },
+const pagTagCls: Record<string, string> = {
+  Pendente: 'tag tag-warning',
+  Aprovado: 'tag tag-success',
+  Recusado: 'tag tag-danger',
+  Estornado: 'tag tag-neutral',
 }
 
 const METODO_LABEL: Record<string, string> = {
@@ -45,10 +44,7 @@ export function MeusIngressosPage() {
     },
   })
 
-  const pagamentoPorIngresso = Object.fromEntries(
-    pagamentos.map((p) => [p.ingressoId, p])
-  )
-
+  const pagamentoPorIngresso = Object.fromEntries(pagamentos.map((p) => [p.ingressoId, p]))
   const meusIngressos = ingressos.filter((i) => i.status !== 'Disponivel')
 
   function confirmarReembolso(pagamentoId: string) {
@@ -59,75 +55,68 @@ export function MeusIngressosPage() {
 
   return (
     <Layout>
-      <h1 style={{ fontSize: 24, color: '#1a1a2e', marginBottom: 28 }}>Meus Ingressos</h1>
+      <h1 style={{ marginBottom: 'var(--space-6)' }}>Meus ingressos</h1>
 
-      {isLoading && <p style={{ color: '#888' }}>Carregando…</p>}
+      {isLoading && <p className="text-muted">Carregando…</p>}
+
       {!isLoading && meusIngressos.length === 0 && (
-        <p style={{ color: '#888' }}>Você ainda não possui ingressos reservados ou comprados.</p>
+        <div className="card elev-sm" style={{ maxWidth: 420, alignItems: 'flex-start' }}>
+          <i className="ph ph-ticket" style={{ fontSize: 32, color: 'var(--color-accent)' }} />
+          <div className="card-title">Nenhum ingresso ainda</div>
+          <p className="card-body">Explore os eventos e garanta o seu.</p>
+          <a href="/" className="btn btn-secondary">Ver eventos</a>
+        </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 'var(--space-6)' }}>
         {meusIngressos.map((ingresso) => {
           const pag = pagamentoPorIngresso[ingresso.id]
-          const sc = statusColor[ingresso.status] ?? { bg: '#f3f4f6', color: '#6b7280' }
-          const pagSc = pag ? (pagStatusColor[pag.status] ?? { bg: '#f3f4f6', color: '#6b7280' }) : null
 
           return (
-            <div key={ingresso.id} style={card}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={ingresso.id} className="card elev-sm" style={{ gap: 'var(--space-3)' }}>
+              {/* Header row */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <strong style={{ fontSize: 15 }}>{ingresso.tipoIngresso}</strong>
-                  <div style={{ color: '#555', fontSize: 13, marginTop: 2 }}>
+                  <div className="card-title" style={{ fontSize: 15 }}>{ingresso.tipoIngresso}</div>
+                  <div className="card-meta" style={{ marginTop: 4 }}>
                     R$ {ingresso.preco.toFixed(2).replace('.', ',')}
                   </div>
                   {ingresso.reservadoAte && ingresso.status === 'Reservado' && (
-                    <div style={{ color: '#f59e0b', fontSize: 12, marginTop: 2 }}>
-                      Reservado até: {new Date(ingresso.reservadoAte).toLocaleTimeString('pt-BR')}
+                    <div style={{ color: 'var(--color-warning)', fontSize: 12, marginTop: 2 }}>
+                      <i className="ph ph-clock" /> Reservado até: {new Date(ingresso.reservadoAte).toLocaleTimeString('pt-BR')}
                     </div>
                   )}
                 </div>
-                <span style={{
-                  background: sc.bg,
-                  color: sc.color,
-                  padding: '3px 12px',
-                  borderRadius: 20,
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}>
+                <span className={ingressoTagCls[ingresso.status] ?? 'tag tag-neutral'}>
                   {ingresso.status}
                 </span>
               </div>
 
+              {/* Payment row */}
               {pag && (
-                <div style={{ marginTop: 12, padding: '10px 14px', background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: 13, color: '#444' }}>
-                      Pagamento via <strong>{METODO_LABEL[pag.metodo] ?? pag.metodo}</strong>
-                      {' · '}R$ {pag.valor.toFixed(2).replace('.', ',')}
+                <>
+                  <div className="hr" style={{ margin: '4px 0' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                    <div style={{ fontSize: 13 }}>
+                      <span className="text-muted">Pagamento via </span>
+                      <strong>{METODO_LABEL[pag.metodo] ?? pag.metodo}</strong>
+                      <span className="text-muted"> · R$ {pag.valor.toFixed(2).replace('.', ',')}</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{
-                        background: pagSc!.bg,
-                        color: pagSc!.color,
-                        padding: '2px 10px',
-                        borderRadius: 20,
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}>
-                        {pag.status}
-                      </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span className={pagTagCls[pag.status] ?? 'tag tag-neutral'}>{pag.status}</span>
                       {pag.status === 'Aprovado' && (
                         <button
-                          style={btnReembolso}
+                          className="btn btn-danger"
+                          style={{ fontSize: 12, padding: '3px 10px' }}
                           onClick={() => confirmarReembolso(pag.id)}
                           disabled={reembolso.isPending}
                         >
-                          Solicitar reembolso
+                          Reembolso
                         </button>
                       )}
                     </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
           )
@@ -135,23 +124,4 @@ export function MeusIngressosPage() {
       </div>
     </Layout>
   )
-}
-
-const card: CSSProperties = {
-  background: '#fff',
-  borderRadius: 10,
-  padding: '16px 20px',
-  boxShadow: '0 2px 8px rgba(0,0,0,.07)',
-  border: '1px solid #e5e7eb',
-}
-
-const btnReembolso: CSSProperties = {
-  background: 'transparent',
-  border: '1px solid #f59e0b',
-  color: '#92400e',
-  padding: '3px 10px',
-  borderRadius: 6,
-  fontSize: 12,
-  cursor: 'pointer',
-  fontWeight: 500,
 }

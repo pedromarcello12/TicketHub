@@ -1,5 +1,5 @@
 import api from './client'
-import type { CriarEventoRequest, EventoResponse } from '../types'
+import type { CriarEventoRequest, AtualizarEventoRequest, EventoResponse } from '../types'
 
 export const eventosApi = {
   listar: () =>
@@ -10,6 +10,12 @@ export const eventosApi = {
 
   criar: (data: CriarEventoRequest) =>
     api.post<EventoResponse>('/api/eventos', data).then((r) => r.data),
+
+  atualizar: (id: string, data: AtualizarEventoRequest) =>
+    api.put<EventoResponse>(`/api/eventos/${id}`, data).then((r) => r.data),
+
+  excluir: (id: string) =>
+    api.delete(`/api/eventos/${id}`),
 
   publicar: (id: string) =>
     api.post<EventoResponse>(`/api/eventos/${id}/publicar`).then((r) => r.data),
